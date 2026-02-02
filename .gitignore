@@ -1,0 +1,26 @@
+# Unreal Engine
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Visual Studio
+.vs/
+*.vsconfig
+*.sln
+*.VC.db
+*.opendb
+
+# Build results
+*.exe
+*.dll
+*.pdb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Plugin build artifacts
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
