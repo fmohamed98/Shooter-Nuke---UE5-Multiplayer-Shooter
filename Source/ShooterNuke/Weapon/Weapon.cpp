@@ -3,6 +3,8 @@
 
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
+#include "ShooterNuke/Character/NukeCharacter.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -12,7 +14,7 @@ AWeapon::AWeapon()
 	bReplicates = true;
 
 	m_WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	m_WeaponMesh->SetupAttachment(RootComponent);
+	SetRootComponent(m_WeaponMesh);
 
 	m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
@@ -22,6 +24,11 @@ AWeapon::AWeapon()
 	m_AreaSphere->SetupAttachment(RootComponent);
 	m_AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
+	m_PickupWidget->SetupAttachment(RootComponent);
+	m_PickupWidget->SetVisibility(false);
+
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +40,24 @@ void AWeapon::BeginPlay()
 	{
 		m_AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		m_AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		m_AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+	}
+}
+
+void AWeapon::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool isFromSweep, const FHitResult& sweepResult)
+{
+	if (ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(otherActor))
+	{
+		nukeCharacter->SetOverlappingWeapon(this);
+	}
+}
+
+void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex)
+{
+	if (ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(otherActor))
+	{
+		nukeCharacter->SetOverlappingWeapon(nullptr);
 	}
 }
 
@@ -40,6 +65,13 @@ void AWeapon::BeginPlay()
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
+void AWeapon::ShowPickupWidget(const bool showWidget)
+{
+	if (m_PickupWidget != nullptr)
+	{
+		m_PickupWidget->SetVisibility(showWidget);
+	}
 }
 

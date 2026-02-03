@@ -7,6 +7,7 @@
 #include "Weapon.generated.h"
 
 class USphereComponent;
+class UWidgetComponent;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -31,9 +32,29 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnSphereOverlap(
+		UPrimitiveComponent* overlappedComponent,
+		AActor* otherActor,
+		UPrimitiveComponent* otherComponent,
+		int32 otherBodyIndex,
+		bool isFromSweep,
+		const FHitResult& sweepResult
+	);
+
+	UFUNCTION()
+	void OnSphereEndOverlap(
+		UPrimitiveComponent* overlappedComponent,
+		AActor* otherActor,
+		UPrimitiveComponent* otherComponent,
+		int32 otherBodyIndex
+	);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void ShowPickupWidget(const bool showWidget);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
@@ -44,4 +65,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Weapon State"))
 	EWeaponState m_WeaponState;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Pickup Widget"))
+	UWidgetComponent* m_PickupWidget;
 };

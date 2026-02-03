@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "ShooterNuke/Weapon/Weapon.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -29,7 +31,6 @@ ANukeCharacter::ANukeCharacter()
 void ANukeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -49,6 +50,40 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ANukeCharacter::Turn);
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ANukeCharacter::LookUp);
+}
+
+void ANukeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ANukeCharacter, m_OverlappingWeapon,COND_OwnerOnly);
+}
+
+void ANukeCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
+{
+	if (m_OverlappingWeapon != nullptr)
+	{
+		m_OverlappingWeapon->ShowPickupWidget(true);
+	}
+
+	else if (lastWeapon != nullptr)
+	{
+		lastWeapon->ShowPickupWidget(false);
+	}
+}
+
+void ANukeCharacter::SetOverlappingWeapon(AWeapon* weapon)
+{
+	if (m_OverlappingWeapon != nullptr && IsLocallyControlled())
+	{
+		m_OverlappingWeapon->ShowPickupWidget(false);
+	}
+
+	m_OverlappingWeapon = weapon;
+	if (m_OverlappingWeapon != nullptr && IsLocallyControlled())
+	{
+		m_OverlappingWeapon->ShowPickupWidget(true);
+	}
 }
 
 void ANukeCharacter::MoveForward(const float value)
