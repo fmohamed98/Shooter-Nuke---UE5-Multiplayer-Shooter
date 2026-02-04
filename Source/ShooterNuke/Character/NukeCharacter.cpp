@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "ShooterNuke/Weapon/Weapon.h"
+#include "ShooterNuke/NukeComponents/CombatComponent.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -25,6 +26,9 @@ ANukeCharacter::ANukeCharacter()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	m_CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	m_CombatComponent->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -45,6 +49,7 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ANukeCharacter::EquipButtonPressed);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANukeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
@@ -57,6 +62,15 @@ void ANukeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ANukeCharacter, m_OverlappingWeapon,COND_OwnerOnly);
+}
+
+void ANukeCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->m_Character = this;
+	}
 }
 
 void ANukeCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
@@ -114,6 +128,14 @@ void ANukeCharacter::Turn(const float value)
 void ANukeCharacter::LookUp(const float value)
 {
 	AddControllerPitchInput(value);
+}
+
+void ANukeCharacter::EquipButtonPressed()
+{
+	if (m_CombatComponent != nullptr && HasAuthority())
+	{
+		m_CombatComponent->EquipWeapon(m_OverlappingWeapon);
+	}
 }
 
 

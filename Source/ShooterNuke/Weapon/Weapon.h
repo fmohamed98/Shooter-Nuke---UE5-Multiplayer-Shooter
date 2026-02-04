@@ -68,4 +68,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Pickup Widget"))
 	UWidgetComponent* m_PickupWidget;
+
+public:
+	FORCEINLINE void SetWeaponState(EWeaponState weaponState) { m_WeaponState = weaponState; }
 };

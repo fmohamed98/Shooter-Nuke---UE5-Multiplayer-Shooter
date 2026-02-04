@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UCombatComponent;
 class AWeapon;
 
 UCLASS()
@@ -28,6 +29,8 @@ protected:
 	void Turn(const float value);
 	void LookUp(const float value);
 
+	void EquipButtonPressed();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -36,12 +39,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
+	void PostInitializeComponents() override;
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (DisplayName = "Camera Boom"))
 	USpringArmComponent* m_CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (DisplayName = "Follow Camera"))
 	UCameraComponent* m_FollowCamera;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
@@ -49,6 +53,9 @@ private:
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon); //Rep_Notify
+
+	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Combat Component"))
+	UCombatComponent* m_CombatComponent;
 public:	
 
 	void SetOverlappingWeapon(AWeapon* weapon);
