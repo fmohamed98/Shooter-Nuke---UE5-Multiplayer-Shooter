@@ -50,6 +50,7 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ANukeCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ANukeCharacter::CrouchButtonPressed);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANukeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
@@ -80,10 +81,23 @@ void ANukeCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
 		m_OverlappingWeapon->ShowPickupWidget(true);
 	}
 
-	else if (lastWeapon != nullptr)
+	else if (lastWeapon != nullptr) //m_OverlappingWeapon has been set to nullptr
 	{
 		lastWeapon->ShowPickupWidget(false);
 	}
+}
+
+void ANukeCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->EquipWeapon(m_OverlappingWeapon);
+	}
+}
+
+const bool ANukeCharacter::IsWeaponEquipped() const
+{
+	return (m_CombatComponent != nullptr) && (m_CombatComponent->m_EquippedWeapon != nullptr);
 }
 
 void ANukeCharacter::SetOverlappingWeapon(AWeapon* weapon)
@@ -132,9 +146,30 @@ void ANukeCharacter::LookUp(const float value)
 
 void ANukeCharacter::EquipButtonPressed()
 {
-	if (m_CombatComponent != nullptr && HasAuthority())
+	if (m_CombatComponent == nullptr)
+	{
+		return;
+	}
+
+	if (HasAuthority())
 	{
 		m_CombatComponent->EquipWeapon(m_OverlappingWeapon);
+	}
+	else
+	{
+		ServerEquipButtonPressed();
+	}
+}
+
+void ANukeCharacter::CrouchButtonPressed()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
 	}
 }
 

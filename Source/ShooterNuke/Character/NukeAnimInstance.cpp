@@ -9,23 +9,24 @@ void UNukeAnimInstance::NativeInitializeAnimation()
 {
     Super::NativeInitializeAnimation();
 
-    NukeCharacter = Cast<ANukeCharacter>(TryGetPawnOwner());
+    m_NukeCharacter = Cast<ANukeCharacter>(TryGetPawnOwner());
 }
 
 void UNukeAnimInstance::NativeUpdateAnimation(float deltaTime)
 {
     Super::NativeUpdateAnimation(deltaTime);
 
-    if (NukeCharacter == nullptr)
+    if (m_NukeCharacter == nullptr)
     {
         return;
     }
 
-    FVector velocity = NukeCharacter->GetVelocity();
+    FVector velocity = m_NukeCharacter->GetVelocity();
     velocity.Z = 0.f;
-    Speed = velocity.Size();
+    m_Speed = velocity.Size();
 
-    IsInAir = NukeCharacter->GetCharacterMovement()->IsFalling();
-
-    IsAccelerating = NukeCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
+    m_IsInAir = m_NukeCharacter->GetCharacterMovement()->IsFalling();
+    m_IsAccelerating = m_NukeCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
+    m_IsWeaponEquipped = m_NukeCharacter->IsWeaponEquipped();
+    m_IsCrouched = m_NukeCharacter->bIsCrouched;
 }

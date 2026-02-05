@@ -23,8 +23,8 @@ UCLASS()
 class SHOOTERNUKE_API AWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
@@ -50,25 +50,30 @@ protected:
 		int32 otherBodyIndex
 	);
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void ShowPickupWidget(const bool showWidget);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
 	USkeletalMeshComponent* m_WeaponMesh;
-	
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Area Sphere"))
 	USphereComponent* m_AreaSphere;
 
-	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Weapon State"))
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_WeaponState, meta = (DisplayName = "Weapon State"))
 	EWeaponState m_WeaponState;
+
+	UFUNCTION()
+	void OnRep_WeaponState();
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Pickup Widget"))
 	UWidgetComponent* m_PickupWidget;
 
 public:
-	FORCEINLINE void SetWeaponState(EWeaponState weaponState) { m_WeaponState = weaponState; }
+	void SetWeaponState(EWeaponState weaponState);
+	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
 };

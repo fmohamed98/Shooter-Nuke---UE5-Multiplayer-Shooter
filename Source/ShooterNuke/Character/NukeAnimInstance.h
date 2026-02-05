@@ -20,15 +20,21 @@ public:
 	void NativeUpdateAnimation(float deltaTime) override;
 
 private:
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	ANukeCharacter* NukeCharacter;
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true", DisplayName = "Nuke Character"))
+	ANukeCharacter* m_NukeCharacter;
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float Speed;
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Speed"))
+	float m_Speed;
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool IsInAir;
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is in Air"))
+	bool m_IsInAir;
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool IsAccelerating;
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Accelerating"))
+	bool m_IsAccelerating;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Weapon Equipped"))
+	bool m_IsWeaponEquipped;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Crouching"))
+	bool m_IsCrouched;
 };

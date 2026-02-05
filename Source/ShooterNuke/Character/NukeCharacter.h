@@ -30,6 +30,7 @@ protected:
 	void LookUp(const float value);
 
 	void EquipButtonPressed();
+	void CrouchButtonPressed();
 
 public:	
 	// Called every frame
@@ -54,9 +55,13 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon); //Rep_Notify
 
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
+
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Combat Component"))
 	UCombatComponent* m_CombatComponent;
-public:	
 
+public:	
+	const bool IsWeaponEquipped() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
 };

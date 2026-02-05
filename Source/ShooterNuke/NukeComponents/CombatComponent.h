@@ -27,8 +27,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
 
 private:
-	AWeapon* m_EquippedWeapon = nullptr;
+	UPROPERTY(Replicated)
+	AWeapon* m_EquippedWeapon;
+
 	ANukeCharacter* m_Character = nullptr;
 };

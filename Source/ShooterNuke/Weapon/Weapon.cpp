@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -67,11 +68,44 @@ void AWeapon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, m_WeaponState);
+}
+
 void AWeapon::ShowPickupWidget(const bool showWidget)
 {
 	if (m_PickupWidget != nullptr)
 	{
 		m_PickupWidget->SetVisibility(showWidget);
+	}
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch (m_WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		break;
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState weaponState)
+{
+	m_WeaponState = weaponState;
+
+	switch (m_WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		if (m_AreaSphere != nullptr)
+		{
+			m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		break;
 	}
 }
 

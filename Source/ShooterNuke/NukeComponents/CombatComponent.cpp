@@ -5,6 +5,8 @@
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -38,7 +40,6 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 	}
 
 	m_EquippedWeapon->SetOwner(m_Character);
-	m_EquippedWeapon->ShowPickupWidget(false);
 }
 
 // Called when the game starts
@@ -57,5 +58,12 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCombatComponent, m_EquippedWeapon);
 }
 
