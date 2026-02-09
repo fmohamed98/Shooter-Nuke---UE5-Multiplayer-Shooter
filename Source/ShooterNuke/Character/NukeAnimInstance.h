@@ -37,4 +37,18 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Crouching"))
 	bool m_IsCrouched;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Aiming"))
+	bool m_IsAiming;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Yaw Offset"))
+	float m_YawOffSet;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Lean"))
+	float m_Lean;
+
+	FRotator m_CharacterRotationLastFrame;
+	FRotator m_CharacterRotation;
+
+	FRotator m_DeltaRotationSmooth;
 };

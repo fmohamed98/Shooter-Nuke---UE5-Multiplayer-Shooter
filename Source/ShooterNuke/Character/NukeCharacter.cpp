@@ -51,6 +51,8 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ANukeCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ANukeCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ANukeCharacter::AimButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ANukeCharacter::AimButtonReleased);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANukeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
@@ -98,6 +100,11 @@ void ANukeCharacter::ServerEquipButtonPressed_Implementation()
 const bool ANukeCharacter::IsWeaponEquipped() const
 {
 	return (m_CombatComponent != nullptr) && (m_CombatComponent->m_EquippedWeapon != nullptr);
+}
+
+const bool ANukeCharacter::IsAiming() const
+{
+	return (m_CombatComponent != nullptr) && (m_CombatComponent->m_IsAiming);
 }
 
 void ANukeCharacter::SetOverlappingWeapon(AWeapon* weapon)
@@ -170,6 +177,22 @@ void ANukeCharacter::CrouchButtonPressed()
 	else
 	{
 		Crouch();
+	}
+}
+
+void ANukeCharacter::AimButtonPressed()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->SetAiming(true);
+	}
+}
+
+void ANukeCharacter::AimButtonReleased()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->SetAiming(false);
 	}
 }
 

@@ -31,6 +31,8 @@ protected:
 
 	void EquipButtonPressed();
 	void CrouchButtonPressed();
+	void AimButtonPressed();
+	void AimButtonReleased();
 
 public:	
 	// Called every frame
@@ -63,5 +65,6 @@ private:
 
 public:	
 	const bool IsWeaponEquipped() const;
+	const bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
 };

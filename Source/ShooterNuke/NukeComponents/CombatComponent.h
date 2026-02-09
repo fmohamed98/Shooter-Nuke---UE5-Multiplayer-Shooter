@@ -30,8 +30,20 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* m_EquippedWeapon;
 
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 	ANukeCharacter* m_Character = nullptr;
+
+	UPROPERTY(Replicated)
+	bool m_IsAiming;
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(const bool isAiming);
+
+public:
+	void SetAiming(const bool isAiming);
 };

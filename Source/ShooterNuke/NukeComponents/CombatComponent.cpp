@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -40,6 +41,9 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 	}
 
 	m_EquippedWeapon->SetOwner(m_Character);
+
+	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	m_Character->bUseControllerRotationYaw = true;
 }
 
 // Called when the game starts
@@ -65,5 +69,26 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, m_EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, m_IsAiming);
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (m_EquippedWeapon != nullptr && m_Character != nullptr)
+	{
+		m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		m_Character->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
+{
+	m_IsAiming = isAiming;
+}
+
+void UCombatComponent::SetAiming(const bool isAiming)
+{
+	m_IsAiming = isAiming;
+	ServerSetAiming(m_IsAiming);
 }
 
