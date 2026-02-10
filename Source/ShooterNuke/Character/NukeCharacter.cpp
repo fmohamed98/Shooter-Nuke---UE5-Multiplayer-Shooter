@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/NukeComponents/CombatComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -29,6 +30,9 @@ ANukeCharacter::ANukeCharacter()
 
 	m_CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	m_CombatComponent->SetIsReplicated(true);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 // Called when the game starts or when spawned

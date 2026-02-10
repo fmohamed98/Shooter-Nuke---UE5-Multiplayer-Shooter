@@ -46,4 +46,11 @@ private:
 
 public:
 	void SetAiming(const bool isAiming);
+
+private:
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Base Walk Speed"))
+	float m_BaseWalkSpeed;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Aim Walk Speed"))
+	float m_AimWalkSpeed;
 };
