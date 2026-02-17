@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "ShooterNuke/NukeTypes/TurningInPlace.h"
+
 #include "NukeAnimInstance.generated.h"
 
 class ANukeCharacter;
@@ -47,8 +49,16 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Lean"))
 	float m_Lean;
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "AO_Yaw"))
+	float m_AimOffsetYaw;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "AO_Pitch"))
+	float m_AimOffsetPitch;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Turning In Place"))
+	ETurningInPlace m_TurningInPlace;
+
 	FRotator m_CharacterRotationLastFrame;
 	FRotator m_CharacterRotation;
-
 	FRotator m_DeltaRotationSmooth;
 };

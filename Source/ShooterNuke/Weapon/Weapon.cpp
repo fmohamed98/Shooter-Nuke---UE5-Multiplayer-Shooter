@@ -29,7 +29,6 @@ AWeapon::AWeapon()
 	m_PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	m_PickupWidget->SetupAttachment(RootComponent);
 	m_PickupWidget->SetVisibility(false);
-
 }
 
 // Called when the game starts or when spawned

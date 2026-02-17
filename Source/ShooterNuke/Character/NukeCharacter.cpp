@@ -9,6 +9,7 @@
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/NukeComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -45,6 +46,8 @@ void ANukeCharacter::BeginPlay()
 void ANukeCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	AimOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -52,7 +55,7 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ANukeCharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ANukeCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ANukeCharacter::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ANukeCharacter::AimButtonPressed);
@@ -101,12 +104,12 @@ void ANukeCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
-const bool ANukeCharacter::IsWeaponEquipped() const
+bool ANukeCharacter::IsWeaponEquipped() const
 {
 	return (m_CombatComponent != nullptr) && (m_CombatComponent->m_EquippedWeapon != nullptr);
 }
 
-const bool ANukeCharacter::IsAiming() const
+bool ANukeCharacter::IsAiming() const
 {
 	return (m_CombatComponent != nullptr) && (m_CombatComponent->m_IsAiming);
 }
@@ -122,6 +125,83 @@ void ANukeCharacter::SetOverlappingWeapon(AWeapon* weapon)
 	if (m_OverlappingWeapon != nullptr && IsLocallyControlled())
 	{
 		m_OverlappingWeapon->ShowPickupWidget(true);
+	}
+}
+
+void ANukeCharacter::AimOffset(const float deltaTime)
+{
+	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	FVector velocity = GetVelocity();
+	velocity.Z = 0.f;
+	float speed = velocity.Size();
+
+	bool isInAir = GetCharacterMovement()->IsFalling();
+
+	if (speed == 0.f && !isInAir)
+	{
+		FRotator currentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator deltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(currentAimRotation, m_StartingAimRotation);
+
+		m_AimOffsetYaw = deltaAimRotation.Yaw;
+		TurnInPlace(deltaTime);
+	}
+	else
+	{
+		m_StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		m_AimOffsetYaw = 0.f;
+		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	}
+
+	m_AimOffsetPitch = GetBaseAimRotation().Pitch;
+	if (m_AimOffsetPitch > 90.f && !IsLocallyControlled())
+	{
+		FVector2D inRange(270.f, 360.f);
+		FVector2D outRange(-90.f, 0.f);
+
+		m_AimOffsetPitch = FMath::GetMappedRangeValueClamped(inRange, outRange, m_AimOffsetPitch);
+	}
+}
+
+void ANukeCharacter::TurnInPlace(float deltaTime)
+{
+	if (m_AimOffsetYaw > 90.f)
+	{
+		m_TurningInPlace = ETurningInPlace::ETIP_Right;
+	}
+	else if (m_AimOffsetYaw < -90.f)
+	{
+		m_TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+
+	if (m_TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+	{
+		m_InterpAimOffsetYaw = m_AimOffsetYaw;
+	}
+	else
+	{
+		m_InterpAimOffsetYaw = FMath::FInterpTo(m_InterpAimOffsetYaw, 0.f, deltaTime, 4.f);
+		m_AimOffsetYaw = m_InterpAimOffsetYaw;
+		if (FMath::Abs(m_AimOffsetYaw) < 15.f)
+		{
+			m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			m_StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
+	}
+}
+
+void ANukeCharacter::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Super::Jump();
 	}
 }
 
@@ -199,5 +279,7 @@ void ANukeCharacter::AimButtonReleased()
 		m_CombatComponent->SetAiming(false);
 	}
 }
+
+
 
 

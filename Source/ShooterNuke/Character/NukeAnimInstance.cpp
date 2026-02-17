@@ -46,4 +46,9 @@ void UNukeAnimInstance::NativeUpdateAnimation(float deltaTime)
     const float target = delta.Yaw / deltaTime;
     const float interp = FMath::FInterpTo(m_Lean, target, deltaTime, 6.0f);
     m_Lean = FMath::Clamp(interp, -90.f, 90.f);
+
+    m_AimOffsetYaw = m_NukeCharacter->GetAimOffsetYaw();
+    m_AimOffsetPitch = m_NukeCharacter->GetAimOffsetPitch();
+
+    m_TurningInPlace = m_NukeCharacter->GetTurningInPlace();
 }

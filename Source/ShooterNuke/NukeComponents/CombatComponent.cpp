@@ -97,5 +97,10 @@ void UCombatComponent::SetAiming(const bool isAiming)
 {
 	m_IsAiming = isAiming;
 	ServerSetAiming(m_IsAiming);
+
+	if (m_Character != nullptr)
+	{
+		m_Character->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimWalkSpeed : m_BaseWalkSpeed;
+	}
 }
 

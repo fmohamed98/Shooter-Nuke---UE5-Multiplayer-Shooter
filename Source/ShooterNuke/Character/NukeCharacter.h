@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ShooterNuke/NukeTypes/TurningInPlace.h"
+
 #include "NukeCharacter.generated.h"
 
 class USpringArmComponent;
@@ -24,6 +26,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void Jump() override;
 	void MoveForward(const float value);
 	void MoveRight(const float value);
 	void Turn(const float value);
@@ -33,6 +36,7 @@ protected:
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void AimOffset(const float deltaTime);
 
 public:	
 	// Called every frame
@@ -64,7 +68,20 @@ private:
 	UCombatComponent* m_CombatComponent;
 
 public:	
-	const bool IsWeaponEquipped() const;
-	const bool IsAiming() const;
+	bool IsWeaponEquipped() const;
+	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
+
+	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
+	FORCEINLINE float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
+	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
+
+private:
+	float m_InterpAimOffsetYaw = 0.f;
+	float m_AimOffsetYaw = 0.f;
+	float m_AimOffsetPitch = 0.f;
+	FRotator m_StartingAimRotation{ 0.f,0.f,0.f };
+
+	ETurningInPlace m_TurningInPlace{ ETurningInPlace::ETIP_NotTurning };
+	void TurnInPlace(float deltaTime);
 };
