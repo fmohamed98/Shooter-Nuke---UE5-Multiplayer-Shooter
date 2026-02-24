@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UWidgetComponent;
+class UAnimationAsset;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -56,6 +57,7 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void ShowPickupWidget(const bool showWidget);
+	void Fire();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
@@ -72,6 +74,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Pickup Widget"))
 	UWidgetComponent* m_PickupWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Fire Animation"))
+	UAnimationAsset* m_FireAnimation;
 
 public:
 	void SetWeaponState(EWeaponState weaponState);

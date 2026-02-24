@@ -38,14 +38,22 @@ private:
 
 	ANukeCharacter* m_Character = nullptr;
 
+	bool m_IsFireButtonPressed = false;
+
 	UPROPERTY(Replicated)
 	bool m_IsAiming;
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(const bool isAiming);
 
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastFire();
 public:
 	void SetAiming(const bool isAiming);
+	void FireButtonPressed(const bool isPressed);
 
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Base Walk Speed"))

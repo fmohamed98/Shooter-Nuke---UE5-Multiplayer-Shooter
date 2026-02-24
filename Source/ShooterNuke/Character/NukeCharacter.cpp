@@ -10,6 +10,7 @@
 #include "ShooterNuke/NukeComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Animation/AnimInstance.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -60,6 +61,8 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ANukeCharacter::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ANukeCharacter::AimButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ANukeCharacter::AimButtonReleased);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ANukeCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ANukeCharacter::FireButtonReleased);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANukeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
@@ -125,6 +128,23 @@ void ANukeCharacter::SetOverlappingWeapon(AWeapon* weapon)
 	if (m_OverlappingWeapon != nullptr && IsLocallyControlled())
 	{
 		m_OverlappingWeapon->ShowPickupWidget(true);
+	}
+}
+
+void ANukeCharacter::PlayFireMontage()
+{
+	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance != nullptr && m_FireWeaponMontage != nullptr)
+	{
+		animInstance->Montage_Play(m_FireWeaponMontage);
+		FName sectionName;
+		sectionName = IsAiming() ? FName("RifleIronSights") : FName("RifleHip");
+		animInstance->Montage_JumpToSection(sectionName);
 	}
 }
 
@@ -277,6 +297,22 @@ void ANukeCharacter::AimButtonReleased()
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->SetAiming(false);
+	}
+}
+
+void ANukeCharacter::FireButtonPressed()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->FireButtonPressed(true);
+	}
+}
+
+void ANukeCharacter::FireButtonReleased()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->FireButtonPressed(false);
 	}
 }
 

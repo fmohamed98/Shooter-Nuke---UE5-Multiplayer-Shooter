@@ -4,8 +4,10 @@
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Animation/AnimationAsset.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -79,6 +81,14 @@ void AWeapon::ShowPickupWidget(const bool showWidget)
 	if (m_PickupWidget != nullptr)
 	{
 		m_PickupWidget->SetVisibility(showWidget);
+	}
+}
+
+void AWeapon::Fire()
+{
+	if (m_FireAnimation != nullptr)
+	{
+		m_WeaponMesh->PlayAnimation(m_FireAnimation, false);
 	}
 }
 

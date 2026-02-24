@@ -8,6 +8,7 @@
 
 #include "NukeCharacter.generated.h"
 
+class UAnimMontage;
 class USpringArmComponent;
 class UCameraComponent;
 class UCombatComponent;
@@ -36,6 +37,8 @@ protected:
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void FireButtonPressed();
+	void FireButtonReleased();
 	void AimOffset(const float deltaTime);
 
 public:	
@@ -67,10 +70,14 @@ private:
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Combat Component"))
 	UCombatComponent* m_CombatComponent;
 
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Weapon Montage"))
+	UAnimMontage* m_FireWeaponMontage;
+
 public:	
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
+	void PlayFireMontage();
 
 	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	FORCEINLINE float GetAimOffsetPitch() const { return m_AimOffsetPitch; }

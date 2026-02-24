@@ -93,6 +93,25 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 	}
 }
 
+void UCombatComponent::ServerFire_Implementation()
+{
+	MultiCastFire();
+}
+
+void UCombatComponent::MultiCastFire_Implementation()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	if (m_Character != nullptr)
+	{
+		m_Character->PlayFireMontage();
+		m_EquippedWeapon->Fire();
+	}
+}
+
 void UCombatComponent::SetAiming(const bool isAiming)
 {
 	m_IsAiming = isAiming;
@@ -101,6 +120,16 @@ void UCombatComponent::SetAiming(const bool isAiming)
 	if (m_Character != nullptr)
 	{
 		m_Character->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimWalkSpeed : m_BaseWalkSpeed;
+	}
+}
+
+void UCombatComponent::FireButtonPressed(const bool isPressed)
+{
+	m_IsFireButtonPressed = isPressed;
+
+	if (m_IsFireButtonPressed)
+	{
+		ServerFire();
 	}
 }
 
