@@ -8,13 +8,17 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h" 
+
+constexpr float TRACE_LENGTH = 80000.f;
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	m_BaseWalkSpeed = 600.0f;
 	m_AimWalkSpeed = 450.0f;
@@ -64,7 +68,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	TraceUnderCrossHairs();
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -108,7 +112,45 @@ void UCombatComponent::MultiCastFire_Implementation()
 	if (m_Character != nullptr)
 	{
 		m_Character->PlayFireMontage();
-		m_EquippedWeapon->Fire();
+		m_EquippedWeapon->Fire(m_HitTarget);
+	}
+}
+
+void UCombatComponent::TraceUnderCrossHairs()
+{
+	FVector2D viewPortSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(viewPortSize);
+	}
+
+	FVector2D crossHairLocarion(viewPortSize.X / 2.f, viewPortSize.Y / 2.f);
+	FVector crossHairWorldPosition;
+	FVector crossHairWorldDirection;
+
+	bool isScreentoWorld = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this,0),
+		crossHairLocarion,
+		crossHairWorldPosition,
+		crossHairWorldDirection);
+
+	if (isScreentoWorld)
+	{
+		FVector start = crossHairWorldPosition;
+		FVector end = start + crossHairWorldDirection * TRACE_LENGTH;
+		FHitResult traceHitResult;
+		GetWorld()->LineTraceSingleByChannel(traceHitResult, start, end, ECollisionChannel::ECC_Visibility);
+
+		if (!traceHitResult.bBlockingHit)
+		{
+			traceHitResult.ImpactPoint = end;
+			m_HitTarget = end;
+		}
+		else
+		{
+			m_HitTarget = traceHitResult.ImpactPoint;
+			DrawDebugSphere(GetWorld(), traceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
+		}
 	}
 }
 

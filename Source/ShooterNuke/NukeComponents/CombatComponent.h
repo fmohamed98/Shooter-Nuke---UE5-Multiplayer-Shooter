@@ -51,6 +51,8 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire();
+
+	void TraceUnderCrossHairs();
 public:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
@@ -61,4 +63,6 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Aim Walk Speed"))
 	float m_AimWalkSpeed;
+
+	FVector m_HitTarget;
 };

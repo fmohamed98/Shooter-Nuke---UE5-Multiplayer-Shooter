@@ -57,7 +57,7 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void ShowPickupWidget(const bool showWidget);
-	void Fire();
+	virtual void Fire(const FVector& hitTarget);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
@@ -81,4 +81,5 @@ private:
 public:
 	void SetWeaponState(EWeaponState weaponState);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }
 };

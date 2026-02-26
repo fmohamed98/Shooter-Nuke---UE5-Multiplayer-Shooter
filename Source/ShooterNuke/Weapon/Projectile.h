@@ -7,6 +7,7 @@
 #include "Projectile.generated.h"
 
 class UBoxComponent;
+class UProjectileMovementComponent;
 
 UCLASS()
 class SHOOTERNUKE_API AProjectile : public AActor
@@ -26,6 +27,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Collision Box"))
 	UBoxComponent* m_CollisionBox;
+
+	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Movement Component"))
+	UProjectileMovementComponent* m_ProjectileMovementComponent;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Tracer"))
+	UParticleSystem* m_Tracer;
 };

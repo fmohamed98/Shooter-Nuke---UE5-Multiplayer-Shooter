@@ -6,9 +6,17 @@
 #include "Weapon.h"
 #include "ProjectileWeapon.generated.h"
 
+class AProjectile;
+
 UCLASS()
 class SHOOTERNUKE_API AProjectileWeapon : public AWeapon
 {
 	GENERATED_BODY()
 	
+private:
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Projectile Class"));
+	TSubclassOf<AProjectile> m_ProjectileClass;
+
+public:
+	void Fire(const FVector& hitTarget) override;
 };
