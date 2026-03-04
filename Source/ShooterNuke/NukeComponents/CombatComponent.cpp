@@ -67,8 +67,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	TraceUnderCrossHairs();
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -97,12 +95,12 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
 	}
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& traceHitTarget)
 {
-	MultiCastFire();
+	MultiCastFire(traceHitTarget);
 }
 
-void UCombatComponent::MultiCastFire_Implementation()
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& traceHitTarget)
 {
 	if (m_EquippedWeapon == nullptr)
 	{
@@ -112,11 +110,11 @@ void UCombatComponent::MultiCastFire_Implementation()
 	if (m_Character != nullptr)
 	{
 		m_Character->PlayFireMontage();
-		m_EquippedWeapon->Fire(m_HitTarget);
+		m_EquippedWeapon->Fire(traceHitTarget);
 	}
 }
 
-void UCombatComponent::TraceUnderCrossHairs()
+void UCombatComponent::TraceUnderCrossHairs(FHitResult& traceHitResult)
 {
 	FVector2D viewPortSize;
 	if (GEngine && GEngine->GameViewport)
@@ -138,19 +136,7 @@ void UCombatComponent::TraceUnderCrossHairs()
 	{
 		FVector start = crossHairWorldPosition;
 		FVector end = start + crossHairWorldDirection * TRACE_LENGTH;
-		FHitResult traceHitResult;
 		GetWorld()->LineTraceSingleByChannel(traceHitResult, start, end, ECollisionChannel::ECC_Visibility);
-
-		if (!traceHitResult.bBlockingHit)
-		{
-			traceHitResult.ImpactPoint = end;
-			m_HitTarget = end;
-		}
-		else
-		{
-			m_HitTarget = traceHitResult.ImpactPoint;
-			DrawDebugSphere(GetWorld(), traceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
-		}
 	}
 }
 
@@ -171,7 +157,9 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 
 	if (m_IsFireButtonPressed)
 	{
-		ServerFire();
+		FHitResult hitResult;
+		TraceUnderCrossHairs(hitResult);
+		ServerFire(hitResult.ImpactPoint);
 	}
 }
 

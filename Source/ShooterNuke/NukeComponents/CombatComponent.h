@@ -47,12 +47,12 @@ private:
 	void ServerSetAiming(const bool isAiming);
 
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(const FVector_NetQuantize& traceHitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCastFire();
+	void MultiCastFire(const FVector_NetQuantize& traceHitTarget);
 
-	void TraceUnderCrossHairs();
+	void TraceUnderCrossHairs(FHitResult& hitResult);
 public:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
@@ -63,6 +63,4 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Aim Walk Speed"))
 	float m_AimWalkSpeed;
-
-	FVector m_HitTarget;
 };
