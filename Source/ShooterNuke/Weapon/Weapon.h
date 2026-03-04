@@ -9,6 +9,7 @@
 class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
+class ABulletShell;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -77,6 +78,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Fire Animation"))
 	UAnimationAsset* m_FireAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Bullet Shell"))
+	TSubclassOf<ABulletShell> m_BulletShellClass;
 
 public:
 	void SetWeaponState(EWeaponState weaponState);

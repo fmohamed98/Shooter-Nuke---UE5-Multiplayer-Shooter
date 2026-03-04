@@ -8,6 +8,8 @@
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimationAsset.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "BulletShell.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -89,6 +91,19 @@ void AWeapon::Fire(const FVector& hitTarget)
 	if (m_FireAnimation != nullptr)
 	{
 		m_WeaponMesh->PlayAnimation(m_FireAnimation, false);
+	}
+
+	const USkeletalMeshSocket* ammoEjectSocket = m_WeaponMesh->GetSocketByName(FName("AmmoEject"));
+	if (ammoEjectSocket == nullptr)
+	{
+		return;
+	}
+
+	FTransform socketTransform = ammoEjectSocket->GetSocketTransform(GetWeaponMesh());
+
+	if (UWorld* world = GetWorld())
+	{
+		world->SpawnActor<ABulletShell>(m_BulletShellClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator());
 	}
 }
 
