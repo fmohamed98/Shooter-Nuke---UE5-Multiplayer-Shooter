@@ -4,6 +4,8 @@
 #include "CombatComponent.h"
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
+#include "ShooterNuke/HUD/NukeHUD.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -67,6 +69,8 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	SetHUDCrossHairs(DeltaTime);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -138,6 +142,55 @@ void UCombatComponent::TraceUnderCrossHairs(FHitResult& traceHitResult)
 		FVector end = start + crossHairWorldDirection * TRACE_LENGTH;
 		GetWorld()->LineTraceSingleByChannel(traceHitResult, start, end, ECollisionChannel::ECC_Visibility);
 	}
+}
+
+void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
+{
+	if (m_Character == nullptr || m_Character->Controller == nullptr)
+	{
+		return;
+	}
+
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	m_PlayerController = m_PlayerController == nullptr ? Cast<ANukePlayerController>(m_Character->Controller) : m_PlayerController;
+	m_HUD = m_HUD == nullptr ? Cast<ANukeHUD>(m_PlayerController->GetHUD()) : m_HUD;
+
+	if (m_HUD == nullptr)
+	{
+		return;
+	}
+
+	FHUDPackage hudPackage;
+	hudPackage.m_CrosshairBottom = m_EquippedWeapon->m_CrosshairBottom;
+	hudPackage.m_CrosshairCenter = m_EquippedWeapon->m_CrosshairCenter;
+	hudPackage.m_CrosshairLeft = m_EquippedWeapon->m_CrosshairLeft;
+	hudPackage.m_CrosshairRight = m_EquippedWeapon->m_CrosshairRight;
+	hudPackage.m_CrosshairTop = m_EquippedWeapon->m_CrosshairTop;
+
+	FVector2d walkSpeedRange(0.f, m_Character->GetCharacterMovement()->MaxWalkSpeed);
+	FVector2D velocityMultiplierRange(0.f, 1.f);
+
+	FVector velocity = m_Character->GetVelocity();
+	velocity.Z = 0.f;
+	
+	float crossHairVelocityFactor = FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+
+	if (m_Character->GetCharacterMovement()->IsFalling())
+	{
+		m_CrossHairAirFactor = FMath::FInterpTo(m_CrossHairAirFactor, 2.25f, deltaTime, 2.25f);
+	}
+	else
+	{
+		m_CrossHairAirFactor = FMath::FInterpTo(m_CrossHairAirFactor, 0.f, deltaTime, 30.f);
+	}
+
+	hudPackage.m_CrossHairSpread = crossHairVelocityFactor + m_CrossHairAirFactor;
+
+	m_HUD->SetHUDPackage(hudPackage);
 }
 
 void UCombatComponent::SetAiming(const bool isAiming)

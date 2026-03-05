@@ -8,6 +8,8 @@
 
 class AWeapon;
 class ANukeCharacter;
+class ANukePlayerController;
+class ANukeHUD;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SHOOTERNUKE_API UCombatComponent : public UActorComponent
@@ -37,6 +39,8 @@ private:
 	void OnRep_EquippedWeapon();
 
 	ANukeCharacter* m_Character = nullptr;
+	ANukeHUD* m_HUD = nullptr;
+	ANukePlayerController* m_PlayerController = nullptr;
 
 	bool m_IsFireButtonPressed = false;
 
@@ -53,6 +57,7 @@ private:
 	void MultiCastFire(const FVector_NetQuantize& traceHitTarget);
 
 	void TraceUnderCrossHairs(FHitResult& hitResult);
+	void SetHUDCrossHairs(const float deltaTime);
 public:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
@@ -63,4 +68,6 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Aim Walk Speed"))
 	float m_AimWalkSpeed;
+
+	float m_CrossHairAirFactor = 0.f;
 };

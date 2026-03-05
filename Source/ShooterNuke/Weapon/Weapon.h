@@ -83,6 +83,22 @@ private:
 	TSubclassOf<ABulletShell> m_BulletShellClass;
 
 public:
+	//Textures
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Center"))
+	UTexture2D* m_CrosshairCenter;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Left"))
+	UTexture2D* m_CrosshairLeft;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Right"))
+	UTexture2D* m_CrosshairRight;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Top"))
+	UTexture2D* m_CrosshairTop;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Bottom"))
+	UTexture2D* m_CrosshairBottom;
+
 	void SetWeaponState(EWeaponState weaponState);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }

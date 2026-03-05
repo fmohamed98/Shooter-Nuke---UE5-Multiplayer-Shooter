@@ -1,0 +1,42 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/HUD.h"
+#include "NukeHUD.generated.h"
+
+class UTexture2D;
+
+USTRUCT(BlueprintType)
+struct FHUDPackage
+{
+	GENERATED_BODY()
+public:
+	UTexture2D* m_CrosshairCenter;
+	UTexture2D* m_CrosshairLeft;
+	UTexture2D* m_CrosshairRight;
+	UTexture2D* m_CrosshairTop;
+	UTexture2D* m_CrosshairBottom;
+
+	float m_CrossHairSpread;
+};
+
+/**
+ * 
+ */
+UCLASS()
+class SHOOTERNUKE_API ANukeHUD : public AHUD
+{
+	GENERATED_BODY()
+public:
+	void DrawHUD() override;
+
+	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { m_HUDPackage = package; }
+private:
+	FHUDPackage m_HUDPackage;
+
+	float m_CrosshairSpreadMax = 16.f;
+
+	void DrawCrossHair(UTexture2D* texture, FVector2D viewPortCenter, FVector2D spread);
+};
