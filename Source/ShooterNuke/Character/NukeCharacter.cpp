@@ -35,6 +35,7 @@ ANukeCharacter::ANukeCharacter()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 // Called when the game starts or when spawned
@@ -49,6 +50,8 @@ void ANukeCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
+
+	HideCameraIfCharacterClose();
 }
 
 // Called to bind functionality to input
@@ -145,6 +148,26 @@ void ANukeCharacter::PlayFireMontage()
 		FName sectionName;
 		sectionName = IsAiming() ? FName("RifleIronSights") : FName("RifleHip");
 		animInstance->Montage_JumpToSection(sectionName);
+	}
+}
+
+void ANukeCharacter::HideCameraIfCharacterClose()
+{
+	if (!IsLocallyControlled() || m_FollowCamera == nullptr)
+	{
+		return;
+	}
+
+	const bool hideCharacter = (m_FollowCamera->GetComponentLocation() - GetActorLocation()).Size() <  m_CameraThreshold;
+
+	GetMesh()->SetVisibility(!hideCharacter);
+
+	if (m_CombatComponent != nullptr && m_CombatComponent->m_EquippedWeapon != nullptr)
+	{
+		if (USkeletalMeshComponent* weaponMesh = m_CombatComponent->m_EquippedWeapon->GetWeaponMesh())
+		{
+			weaponMesh->bOwnerNoSee = hideCharacter;
+		}
 	}
 }
 

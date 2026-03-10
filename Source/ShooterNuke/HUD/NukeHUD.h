@@ -20,6 +20,7 @@ public:
 	UTexture2D* m_CrosshairBottom;
 
 	float m_CrossHairSpread;
+	FLinearColor m_CrossHairColour;
 };
 
 /**
@@ -38,5 +39,5 @@ private:
 
 	float m_CrosshairSpreadMax = 16.f;
 
-	void DrawCrossHair(UTexture2D* texture, FVector2D viewPortCenter, FVector2D spread);
+	void DrawCrossHair(UTexture2D* texture, FVector2D viewPortCenter, FVector2D spread, FLinearColor crossHairColour);
 };

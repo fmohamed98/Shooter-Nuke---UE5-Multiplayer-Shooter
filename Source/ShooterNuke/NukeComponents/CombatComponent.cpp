@@ -5,7 +5,6 @@
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
-#include "ShooterNuke/HUD/NukeHUD.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -135,27 +134,44 @@ void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& t
 
 void UCombatComponent::TraceUnderCrossHairs(FHitResult& traceHitResult)
 {
+	if (m_Character == nullptr)
+	{
+		return;
+	}
+
 	FVector2D viewPortSize;
 	if (GEngine && GEngine->GameViewport)
 	{
 		GEngine->GameViewport->GetViewportSize(viewPortSize);
 	}
 
-	FVector2D crossHairLocarion(viewPortSize.X / 2.f, viewPortSize.Y / 2.f);
+	FVector2D crossHairLocation(viewPortSize.X / 2.f, viewPortSize.Y / 2.f);
 	FVector crossHairWorldPosition;
 	FVector crossHairWorldDirection;
 
 	bool isScreentoWorld = UGameplayStatics::DeprojectScreenToWorld(
 		UGameplayStatics::GetPlayerController(this,0),
-		crossHairLocarion,
+		crossHairLocation,
 		crossHairWorldPosition,
 		crossHairWorldDirection);
 
 	if (isScreentoWorld)
 	{
 		FVector start = crossHairWorldPosition;
+		float distanceToCharacter = (m_Character->GetActorLocation() - start).Size();
+		start += crossHairWorldDirection * (distanceToCharacter + 100.f);
+
 		FVector end = start + crossHairWorldDirection * TRACE_LENGTH;
 		GetWorld()->LineTraceSingleByChannel(traceHitResult, start, end, ECollisionChannel::ECC_Visibility);
+	}
+
+	if (traceHitResult.GetActor() != nullptr && traceHitResult.GetActor()->Implements<UInteractWithCrosshairInterface>())
+	{
+		m_HudPackage.m_CrossHairColour = FLinearColor::Red;
+	}
+	else
+	{
+		m_HudPackage.m_CrossHairColour = FLinearColor::White;
 	}
 }
 
@@ -179,12 +195,11 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 		return;
 	}
 
-	FHUDPackage hudPackage;
-	hudPackage.m_CrosshairBottom = m_EquippedWeapon->m_CrosshairBottom;
-	hudPackage.m_CrosshairCenter = m_EquippedWeapon->m_CrosshairCenter;
-	hudPackage.m_CrosshairLeft = m_EquippedWeapon->m_CrosshairLeft;
-	hudPackage.m_CrosshairRight = m_EquippedWeapon->m_CrosshairRight;
-	hudPackage.m_CrosshairTop = m_EquippedWeapon->m_CrosshairTop;
+	m_HudPackage.m_CrosshairBottom = m_EquippedWeapon->m_CrosshairBottom;
+	m_HudPackage.m_CrosshairCenter = m_EquippedWeapon->m_CrosshairCenter;
+	m_HudPackage.m_CrosshairLeft = m_EquippedWeapon->m_CrosshairLeft;
+	m_HudPackage.m_CrosshairRight = m_EquippedWeapon->m_CrosshairRight;
+	m_HudPackage.m_CrosshairTop = m_EquippedWeapon->m_CrosshairTop;
 
 	FVector2d walkSpeedRange(0.f, m_Character->GetCharacterMovement()->MaxWalkSpeed);
 	FVector2D velocityMultiplierRange(0.f, 1.f);
@@ -192,7 +207,7 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 	FVector velocity = m_Character->GetVelocity();
 	velocity.Z = 0.f;
 	
-	float crossHairVelocityFactor = FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
+	m_CrossHairVelocityFactor = FMath::GetMappedRangeValueClamped(walkSpeedRange, velocityMultiplierRange, velocity.Size());
 
 	if (m_Character->GetCharacterMovement()->IsFalling())
 	{
@@ -214,13 +229,13 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 
 	m_CrossHairShootFactor = FMath::FInterpTo(m_CrossHairShootFactor, 0.f, deltaTime, 40.f);
 	
-	hudPackage.m_CrossHairSpread = 0.5f + 
-									crossHairVelocityFactor + 
+	m_HudPackage.m_CrossHairSpread = 0.5f +
+									m_CrossHairVelocityFactor +
 									m_CrossHairAirFactor - 
 									m_CrossHairAimFactor +
 									m_CrossHairShootFactor;
 
-	m_HUD->SetHUDPackage(hudPackage);
+	m_HUD->SetHUDPackage(m_HudPackage);
 }
 
 void UCombatComponent::SetAiming(const bool isAiming)
@@ -255,23 +270,22 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 
 void UCombatComponent::InterpFOV(const float deltaTime)
 {
-	if (m_EquippedWeapon == nullptr)
+	if (m_EquippedWeapon == nullptr || m_Character == nullptr)
 	{
 		return;
 	}
 
-	if (m_IsAiming)
+	UCameraComponent* followCamera = m_Character->GetFollowCamera();
+	if (followCamera == nullptr)
 	{
-		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_EquippedWeapon->GetZoomedFOV(), deltaTime, m_EquippedWeapon->GetZoomInterpSpeed());
-	}
-	else
-	{
-		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_DefaultFOV, deltaTime, m_UnZoomInterpSpeed);
+		return;
 	}
 
-	if (m_Character != nullptr && m_Character->GetFollowCamera() != nullptr)
-	{
-		m_Character->GetFollowCamera()->SetFieldOfView(m_CurrentFOV);
-	}
+	const float targetFOV = m_IsAiming? m_EquippedWeapon->GetZoomedFOV() : m_DefaultFOV;
+	const float interpSpeed = m_IsAiming? m_EquippedWeapon->GetZoomInterpSpeed() : m_UnZoomInterpSpeed;
+
+	m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, targetFOV, deltaTime, interpSpeed);
+
+	followCamera->SetFieldOfView(m_CurrentFOV);
 }
 

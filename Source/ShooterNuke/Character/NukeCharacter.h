@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "ShooterNuke/NukeTypes/TurningInPlace.h"
+#include "ShooterNuke/Interfaces/InteractWithCrosshairInterface.h"
 
 #include "NukeCharacter.generated.h"
 
@@ -15,7 +16,7 @@ class UCombatComponent;
 class AWeapon;
 
 UCLASS()
-class SHOOTERNUKE_API ANukeCharacter : public ACharacter
+class SHOOTERNUKE_API ANukeCharacter : public ACharacter, public IInteractWithCrosshairInterface
 {
 	GENERATED_BODY()
 
@@ -92,4 +93,9 @@ private:
 
 	ETurningInPlace m_TurningInPlace{ ETurningInPlace::ETIP_NotTurning };
 	void TurnInPlace(float deltaTime);
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Camera  Threshold"))
+	float m_CameraThreshold = 200.f;
+
+	void HideCameraIfCharacterClose();
 };

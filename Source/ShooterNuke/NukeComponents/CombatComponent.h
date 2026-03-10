@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "ShooterNuke/HUD/NukeHUD.h"
+
 #include "CombatComponent.generated.h"
 
 class AWeapon;
@@ -42,6 +44,8 @@ private:
 	ANukeHUD* m_HUD = nullptr;
 	ANukePlayerController* m_PlayerController = nullptr;
 
+	FHUDPackage m_HudPackage;
+
 	bool m_IsFireButtonPressed = false;
 
 	UPROPERTY(Replicated)
@@ -69,6 +73,7 @@ private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Aim Walk Speed"))
 	float m_AimWalkSpeed;
 
+	float m_CrossHairVelocityFactor = 0.f;
 	float m_CrossHairAirFactor = 0.f;
 	float m_CrossHairAimFactor = 0.f;
 	float m_CrossHairShootFactor = 0.f;
