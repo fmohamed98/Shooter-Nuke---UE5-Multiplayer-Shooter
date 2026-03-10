@@ -12,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
+#include "Camera/CameraComponent.h"
 
 constexpr float TRACE_LENGTH = 80000.f;
 
@@ -58,9 +59,16 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (m_Character != nullptr)
+	if (m_Character == nullptr)
 	{
-		m_Character->GetCharacterMovement()->MaxWalkSpeed = m_BaseWalkSpeed;
+		return;
+	}
+	m_Character->GetCharacterMovement()->MaxWalkSpeed = m_BaseWalkSpeed;
+	
+	if (UCameraComponent* followCamera = m_Character->GetFollowCamera())
+	{
+		m_DefaultFOV = followCamera->FieldOfView;
+		m_CurrentFOV = m_DefaultFOV;
 	}
 }
 
@@ -70,7 +78,14 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	SetHUDCrossHairs(DeltaTime);
+	if (m_Character != nullptr && m_Character->IsLocallyControlled())
+	{
+		FHitResult hitResult;
+		TraceUnderCrossHairs(hitResult);
+
+		SetHUDCrossHairs(DeltaTime);
+		InterpFOV(DeltaTime);
+	}
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -188,7 +203,22 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 		m_CrossHairAirFactor = FMath::FInterpTo(m_CrossHairAirFactor, 0.f, deltaTime, 30.f);
 	}
 
-	hudPackage.m_CrossHairSpread = crossHairVelocityFactor + m_CrossHairAirFactor;
+	if (m_IsAiming)
+	{
+		m_CrossHairAimFactor = FMath::FInterpTo(m_CrossHairAimFactor, 0.58f, deltaTime, 30.f);
+	}
+	else
+	{
+		m_CrossHairAimFactor = FMath::FInterpTo(m_CrossHairAimFactor, 0.f, deltaTime, 30.f);
+	}
+
+	m_CrossHairShootFactor = FMath::FInterpTo(m_CrossHairShootFactor, 0.f, deltaTime, 40.f);
+	
+	hudPackage.m_CrossHairSpread = 0.5f + 
+									crossHairVelocityFactor + 
+									m_CrossHairAirFactor - 
+									m_CrossHairAimFactor +
+									m_CrossHairShootFactor;
 
 	m_HUD->SetHUDPackage(hudPackage);
 }
@@ -206,6 +236,11 @@ void UCombatComponent::SetAiming(const bool isAiming)
 
 void UCombatComponent::FireButtonPressed(const bool isPressed)
 {
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
 	m_IsFireButtonPressed = isPressed;
 
 	if (m_IsFireButtonPressed)
@@ -213,6 +248,30 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 		FHitResult hitResult;
 		TraceUnderCrossHairs(hitResult);
 		ServerFire(hitResult.ImpactPoint);
+
+		m_CrossHairShootFactor += .75f;
+	}
+}
+
+void UCombatComponent::InterpFOV(const float deltaTime)
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	if (m_IsAiming)
+	{
+		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_EquippedWeapon->GetZoomedFOV(), deltaTime, m_EquippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		m_CurrentFOV = FMath::FInterpTo(m_CurrentFOV, m_DefaultFOV, deltaTime, m_UnZoomInterpSpeed);
+	}
+
+	if (m_Character != nullptr && m_Character->GetFollowCamera() != nullptr)
+	{
+		m_Character->GetFollowCamera()->SetFieldOfView(m_CurrentFOV);
 	}
 }
 

@@ -102,4 +102,13 @@ public:
 	void SetWeaponState(EWeaponState weaponState);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }
+	FORCEINLINE float GetZoomedFOV() const { return m_ZoomedFOV; }
+	FORCEINLINE float GetZoomInterpSpeed() const { return m_ZoomInterpSpeed; }
+
+private:
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Zoomed FOV"))
+	float m_ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Zoom Interpolation Speed"))
+	float m_ZoomInterpSpeed = 20.f;
 };

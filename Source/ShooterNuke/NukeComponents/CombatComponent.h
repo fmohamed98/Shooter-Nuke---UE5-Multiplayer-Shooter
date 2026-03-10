@@ -70,4 +70,18 @@ private:
 	float m_AimWalkSpeed;
 
 	float m_CrossHairAirFactor = 0.f;
+	float m_CrossHairAimFactor = 0.f;
+	float m_CrossHairShootFactor = 0.f;
+
+	//Aiming and FOV
+	float m_DefaultFOV;
+	float m_CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Zoomed FOV"))
+	float m_ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "UnZoom Interpolation Speed"))
+	float m_UnZoomInterpSpeed = 20.f;
+
+	void InterpFOV(const float deltaTime);
 };

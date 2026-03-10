@@ -79,6 +79,7 @@ public:
 	void SetOverlappingWeapon(AWeapon* weapon);
 	void PlayFireMontage();
 
+	FORCEINLINE UCameraComponent* GetFollowCamera() { return m_FollowCamera; }
 	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	FORCEINLINE float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
