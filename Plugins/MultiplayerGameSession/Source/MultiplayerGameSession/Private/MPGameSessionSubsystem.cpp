@@ -102,6 +102,8 @@ void UMPGameSessionSubsystem::JoinSession(const FOnlineSessionSearchResult& sess
     {
         if (const ULocalPlayer* localPlayer = world->GetFirstLocalPlayerFromController())
         {
+            static int32 result = 0;
+            UE_LOG(LogTemp, Warning, TEXT("Join Result: %d"), result++);
             if (!m_SessionInterface->JoinSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, sessionSearchResult))
             {
                 m_SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(m_JoinSessionCompleteDeleegateHandle);
@@ -148,7 +150,7 @@ void UMPGameSessionSubsystem::OnDestroySessionComplete(FName sessionName, bool w
 {
     if (m_SessionInterface.IsValid())
     {
-        m_SessionInterface->ClearOnDestroySessionRequestedDelegate_Handle(m_DestroySessionCompleteDelegateHandle);
+        m_SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(m_DestroySessionCompleteDelegateHandle);
     }
 
     if (wasSuccessful && m_CreateSessionOnDestroy)

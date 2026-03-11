@@ -6,6 +6,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/ShooterNuke.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -22,6 +24,7 @@ AProjectile::AProjectile()
 	m_CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	m_CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	m_CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	m_CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
 
 	m_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	m_ProjectileMovementComponent->bRotationFollowsVelocity = true;
@@ -45,6 +48,12 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult)
 {
+	ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(otherActor);
+	if (nukeCharacter != nullptr)
+	{
+		nukeCharacter->MultiCastHit();
+	}
+
 	Destroy();
 }
 

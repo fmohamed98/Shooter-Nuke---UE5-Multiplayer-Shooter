@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Animation/AnimInstance.h"
+#include "ShooterNuke/ShooterNuke.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -33,6 +34,7 @@ ANukeCharacter::ANukeCharacter()
 	m_CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	m_CombatComponent->SetIsReplicated(true);
 
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
@@ -149,6 +151,27 @@ void ANukeCharacter::PlayFireMontage()
 		sectionName = IsAiming() ? FName("RifleIronSights") : FName("RifleHip");
 		animInstance->Montage_JumpToSection(sectionName);
 	}
+}
+
+void ANukeCharacter::PlayHitReactMontage()
+{
+	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance != nullptr && m_HitReactMontage != nullptr)
+	{
+		animInstance->Montage_Play(m_HitReactMontage);
+		FName sectionName("FromFront");
+		animInstance->Montage_JumpToSection(sectionName);
+	}
+}
+
+void ANukeCharacter::MultiCastHit_Implementation()
+{
+	PlayHitReactMontage();
 }
 
 void ANukeCharacter::HideCameraIfCharacterClose()

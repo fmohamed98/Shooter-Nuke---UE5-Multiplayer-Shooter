@@ -74,11 +74,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Weapon Montage"))
 	UAnimMontage* m_FireWeaponMontage;
 
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Hit Reaction Montage"))
+	UAnimMontage* m_HitReactMontage;
+
 public:	
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
 	void PlayFireMontage();
+	void PlayHitReactMontage();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiCastHit();
 
 	FORCEINLINE UCameraComponent* GetFollowCamera() { return m_FollowCamera; }
 	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }

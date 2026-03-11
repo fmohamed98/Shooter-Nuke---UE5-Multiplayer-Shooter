@@ -24,3 +24,5 @@ Thumbs.db
 # Plugin build artifacts
 Plugins/*/Binaries/
 Plugins/*/Intermediate/
+
+vs-chromium-project.txt
