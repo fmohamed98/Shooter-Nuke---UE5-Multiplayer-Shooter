@@ -45,6 +45,7 @@ private:
 	ANukePlayerController* m_PlayerController = nullptr;
 
 	FHUDPackage m_HudPackage;
+	FVector m_HitTarget;
 
 	bool m_IsFireButtonPressed = false;
 
@@ -65,6 +66,8 @@ private:
 public:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
+
+	void Fire();
 
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Base Walk Speed"))
@@ -89,4 +92,12 @@ private:
 	float m_UnZoomInterpSpeed = 20.f;
 
 	void InterpFOV(const float deltaTime);
+
+	//Automatic fire
+	FTimerHandle m_FireTimer;
+
+	bool m_CanFire = true;
+
+	void StartFireTimer();
+	void FireTimerFinished();
 };

@@ -99,6 +99,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (DisplayName = "Crosshair Bottom"))
 	UTexture2D* m_CrosshairBottom;
 
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Delay"))
+	float m_FireDelay = .15f;
+
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Automatic"))
+	bool m_IsAutomatic = false;
+
 	void SetWeaponState(EWeaponState weaponState);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }

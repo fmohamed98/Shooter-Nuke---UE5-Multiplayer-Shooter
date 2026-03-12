@@ -81,6 +81,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		FHitResult hitResult;
 		TraceUnderCrossHairs(hitResult);
+		m_HitTarget = hitResult.ImpactPoint;
 
 		SetHUDCrossHairs(DeltaTime);
 		InterpFOV(DeltaTime);
@@ -260,12 +261,44 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 
 	if (m_IsFireButtonPressed)
 	{
-		FHitResult hitResult;
-		TraceUnderCrossHairs(hitResult);
-		ServerFire(hitResult.ImpactPoint);
-
-		m_CrossHairShootFactor += .75f;
+		Fire();
 	}
+}
+
+void UCombatComponent::Fire()
+{
+	if (m_CanFire)
+	{
+		m_CanFire = false;
+        ServerFire(m_HitTarget);
+        m_CrossHairShootFactor = .75f;
+
+        StartFireTimer();
+	}
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	m_CanFire = true;
+	if (m_IsFireButtonPressed && m_EquippedWeapon->m_IsAutomatic)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (m_EquippedWeapon == nullptr || m_Character == nullptr)
+	{
+		return;
+	}
+
+	m_Character->GetWorldTimerManager().SetTimer(m_FireTimer, this, &UCombatComponent::FireTimerFinished, m_EquippedWeapon->m_FireDelay);
 }
 
 void UCombatComponent::InterpFOV(const float deltaTime)
