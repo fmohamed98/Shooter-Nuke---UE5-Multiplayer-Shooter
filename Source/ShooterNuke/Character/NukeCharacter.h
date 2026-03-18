@@ -14,6 +14,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UCombatComponent;
 class AWeapon;
+class ANukePlayerController;
 
 UCLASS()
 class SHOOTERNUKE_API ANukeCharacter : public ACharacter, public IInteractWithCrosshairInterface
@@ -77,6 +78,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Hit Reaction Montage"))
 	UAnimMontage* m_HitReactMontage;
 
+	ANukePlayerController* m_NukePlayerController = nullptr;
 public:	
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
@@ -105,4 +107,14 @@ private:
 	float m_CameraThreshold = 200.f;
 
 	void HideCameraIfCharacterClose();
+
+	//Player Health
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float m_MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float m_Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health();
 };

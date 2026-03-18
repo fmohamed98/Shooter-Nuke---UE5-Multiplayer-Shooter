@@ -2,6 +2,7 @@
 
 
 #include "NukeHUD.h"
+#include "CharacterOverlay.h"
 
 void ANukeHUD::DrawHUD()
 {
@@ -20,6 +21,23 @@ void ANukeHUD::DrawHUD()
         DrawCrossHair(m_HUDPackage.m_CrosshairRight, viewPortCenter, FVector2D(spreadScaled, 0.f), m_HUDPackage.m_CrossHairColour);
         DrawCrossHair(m_HUDPackage.m_CrosshairTop, viewPortCenter, FVector2D(0.f, -spreadScaled), m_HUDPackage.m_CrossHairColour);
         DrawCrossHair(m_HUDPackage.m_CrosshairBottom, viewPortCenter, FVector2D(0.f, spreadScaled), m_HUDPackage.m_CrossHairColour);
+    }
+}
+
+void ANukeHUD::BeginPlay()
+{
+    Super::BeginPlay();
+
+    AddCharacterOverlay();
+}
+
+void ANukeHUD::AddCharacterOverlay()
+{
+    APlayerController* playerController = GetOwningPlayerController();
+    if(playerController != nullptr && m_CharacterOverlayClass)
+    {
+        m_CharacterOverlay = CreateWidget<UCharacterOverlay>(playerController, m_CharacterOverlayClass);
+        m_CharacterOverlay->AddToViewport();
     }
 }
 

@@ -12,6 +12,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterNuke/ShooterNuke.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -44,6 +45,12 @@ ANukeCharacter::ANukeCharacter()
 void ANukeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	m_NukePlayerController = Cast<ANukePlayerController>(Controller);
+	if(m_NukePlayerController != nullptr)
+	{
+		m_NukePlayerController->SetHUDHealth(m_Health, m_MaxHealth);
+	}
 }
 
 // Called every frame
@@ -80,6 +87,7 @@ void ANukeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ANukeCharacter, m_OverlappingWeapon,COND_OwnerOnly);
+	DOREPLIFETIME(ANukeCharacter, m_Health);
 }
 
 void ANukeCharacter::PostInitializeComponents()
@@ -172,6 +180,11 @@ void ANukeCharacter::PlayHitReactMontage()
 void ANukeCharacter::MultiCastHit_Implementation()
 {
 	PlayHitReactMontage();
+}
+
+void ANukeCharacter::OnRep_Health()
+{
+
 }
 
 void ANukeCharacter::HideCameraIfCharacterClose()

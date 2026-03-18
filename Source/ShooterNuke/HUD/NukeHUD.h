@@ -7,6 +7,7 @@
 #include "NukeHUD.generated.h"
 
 class UTexture2D;
+class UCharacterOverlay;
 
 USTRUCT(BlueprintType)
 struct FHUDPackage
@@ -34,8 +35,18 @@ public:
 	void DrawHUD() override;
 
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { m_HUDPackage = package; }
+
+	UCharacterOverlay* m_CharacterOverlay;
+
+protected:
+	void BeginPlay() override;
+
+	void AddCharacterOverlay();
 private:
 	FHUDPackage m_HUDPackage;
+
+	UPROPERTY(EditAnywhere, Category = "Player Stats", meta = (DisplayName = "Character Overlay Class"))
+	TSubclassOf<UUserWidget> m_CharacterOverlayClass;
 
 	float m_CrosshairSpreadMax = 16.f;
 
