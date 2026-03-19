@@ -43,6 +43,8 @@ protected:
 	void FireButtonReleased();
 	void AimOffset(const float deltaTime);
 
+	void UpdateHUDHealth();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -78,6 +80,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Hit Reaction Montage"))
 	UAnimMontage* m_HitReactMontage;
 
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Elimination Montage"))
+	UAnimMontage* m_ElimMontage;
+
 	ANukePlayerController* m_NukePlayerController = nullptr;
 public:	
 	bool IsWeaponEquipped() const;
@@ -85,14 +90,19 @@ public:
 	void SetOverlappingWeapon(AWeapon* weapon);
 	void PlayFireMontage();
 	void PlayHitReactMontage();
+	void PlayElimMontage();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void MultiCastHit();
+	UFUNCTION()
+	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatorController, AActor* damageCauser);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastEliminate();
 
 	FORCEINLINE UCameraComponent* GetFollowCamera() { return m_FollowCamera; }
 	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	FORCEINLINE float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
+	FORCEINLINE bool IsEliminated() const { return m_IsEliminated; }
 
 private:
 	float m_InterpAimOffsetYaw = 0.f;
@@ -114,6 +124,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float m_Health = 100.f;
+
+	bool m_IsEliminated = false;
 
 	UFUNCTION()
 	void OnRep_Health();

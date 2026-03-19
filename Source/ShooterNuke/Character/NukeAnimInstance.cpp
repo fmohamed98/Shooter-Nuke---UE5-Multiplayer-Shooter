@@ -31,6 +31,7 @@ void UNukeAnimInstance::NativeUpdateAnimation(float deltaTime)
     m_IsWeaponEquipped = m_NukeCharacter->IsWeaponEquipped();
     m_IsCrouched = m_NukeCharacter->bIsCrouched;
     m_IsAiming = m_NukeCharacter->IsAiming();
+    m_IsEliminated = m_NukeCharacter->IsEliminated();
 
     //YawOffset
     FRotator aimRotation = m_NukeCharacter->GetBaseAimRotation();

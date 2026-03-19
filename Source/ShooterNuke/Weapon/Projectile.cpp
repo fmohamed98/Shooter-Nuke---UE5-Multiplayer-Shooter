@@ -40,7 +40,7 @@ void AProjectile::BeginPlay()
 		UGameplayStatics::SpawnEmitterAttached(m_Tracer, m_CollisionBox, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
 	}
 
-	if (m_CollisionBox != nullptr)
+	if (m_CollisionBox != nullptr && HasAuthority())
 	{
 		m_CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	}
@@ -48,12 +48,6 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult)
 {
-	ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(otherActor);
-	if (nukeCharacter != nullptr)
-	{
-		nukeCharacter->MultiCastHit();
-	}
-
 	Destroy();
 }
 

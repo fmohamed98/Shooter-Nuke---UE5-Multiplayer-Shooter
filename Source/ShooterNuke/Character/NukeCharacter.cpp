@@ -13,6 +13,7 @@
 #include "Animation/AnimInstance.h"
 #include "ShooterNuke/ShooterNuke.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
+#include "ShooterNuke/GameMode/NukeGameMode.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -46,10 +47,11 @@ void ANukeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	m_NukePlayerController = Cast<ANukePlayerController>(Controller);
-	if(m_NukePlayerController != nullptr)
+	UpdateHUDHealth();
+
+	if (HasAuthority())
 	{
-		m_NukePlayerController->SetHUDHealth(m_Health, m_MaxHealth);
+		OnTakeAnyDamage.AddDynamic(this, &ANukeCharacter::ReceiveDamage);
 	}
 }
 
@@ -177,14 +179,40 @@ void ANukeCharacter::PlayHitReactMontage()
 	}
 }
 
-void ANukeCharacter::MultiCastHit_Implementation()
+void ANukeCharacter::PlayElimMontage()
 {
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance != nullptr && m_ElimMontage != nullptr)
+	{
+		animInstance->Montage_Play(m_ElimMontage);
+	}
+}
+
+void ANukeCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatorController, AActor* damageCauser)
+{
+	m_Health = FMath::Clamp(m_Health - damage, 0.f, m_MaxHealth);
+	
+	UpdateHUDHealth();
 	PlayHitReactMontage();
+
+	ANukeGameMode* nukeGameMode = Cast<ANukeGameMode>(GetWorld()->GetAuthGameMode());
+	if (m_Health == 0.f && nukeGameMode != nullptr)
+	{
+		ANukePlayerController* attackerController = Cast<ANukePlayerController>(instigatorController);
+		nukeGameMode->PlayerEliminated(this, attackerController);
+	}
+}
+
+void ANukeCharacter::MultiCastEliminate_Implementation()
+{
+	m_IsEliminated = true;
+	PlayElimMontage();
 }
 
 void ANukeCharacter::OnRep_Health()
 {
-
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
 
 void ANukeCharacter::HideCameraIfCharacterClose()
@@ -242,6 +270,15 @@ void ANukeCharacter::AimOffset(const float deltaTime)
 		FVector2D outRange(-90.f, 0.f);
 
 		m_AimOffsetPitch = FMath::GetMappedRangeValueClamped(inRange, outRange, m_AimOffsetPitch);
+	}
+}
+
+void ANukeCharacter::UpdateHUDHealth()
+{
+	m_NukePlayerController = m_NukePlayerController == nullptr ? Cast<ANukePlayerController>(Controller) : m_NukePlayerController;
+	if (m_NukePlayerController != nullptr)
+	{
+		m_NukePlayerController->SetHUDHealth(m_Health, m_MaxHealth);
 	}
 }
 

@@ -24,8 +24,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult);
+	virtual void OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult);
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
+	float m_Damage = 5.f;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
