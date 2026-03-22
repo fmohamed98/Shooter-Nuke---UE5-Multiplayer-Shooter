@@ -14,6 +14,7 @@
 #include "ShooterNuke/ShooterNuke.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "ShooterNuke/GameMode/NukeGameMode.h"
+#include "TimerManager.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -40,6 +41,8 @@ ANukeCharacter::ANukeCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
+	m_DissolveTimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -203,10 +206,55 @@ void ANukeCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDa
 	}
 }
 
+void ANukeCharacter::Eliminate()
+{
+	MultiCastEliminate();
+
+	GetWorldTimerManager().SetTimer(m_ElimTimer,this, &ANukeCharacter::ElimTimerFinished, m_ElimDelay);
+}
+
 void ANukeCharacter::MultiCastEliminate_Implementation()
 {
 	m_IsEliminated = true;
 	PlayElimMontage();
+
+	if (m_DissolveMaterialInstance != nullptr)
+	{
+		m_DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(m_DissolveMaterialInstance, this);
+		GetMesh()->SetMaterial(0, m_DynamicDissolveMaterialInstance);
+
+		m_DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f);
+	}
+
+	StartDissolve();
+}
+
+void ANukeCharacter::ElimTimerFinished()
+{
+	ANukeGameMode* nukeGameMode = Cast<ANukeGameMode>(GetWorld()->GetAuthGameMode());
+	if (nukeGameMode != nullptr)
+	{
+		nukeGameMode->RequestRespawn(this);
+	}
+}
+
+void ANukeCharacter::UpdateDissolveMaterial(float dissolveValue)
+{
+	if (m_DynamicDissolveMaterialInstance != nullptr)
+	{
+		m_DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), dissolveValue);
+	}
+}
+
+void ANukeCharacter::StartDissolve()
+{
+	m_DissolveTrack.BindDynamic(this, &ANukeCharacter::UpdateDissolveMaterial);
+
+	if (m_DissolveTimelineComponent != nullptr)
+	{
+		m_DissolveTimelineComponent->AddInterpFloat(m_DissolveCurve, m_DissolveTrack);
+		m_DissolveTimelineComponent->Play();
+	}
 }
 
 void ANukeCharacter::OnRep_Health()

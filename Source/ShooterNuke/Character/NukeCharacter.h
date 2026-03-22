@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "ShooterNuke/NukeTypes/TurningInPlace.h"
 #include "ShooterNuke/Interfaces/InteractWithCrosshairInterface.h"
+#include "Components/TimelineComponent.h"
 
 #include "NukeCharacter.generated.h"
 
@@ -95,6 +96,8 @@ public:
 	UFUNCTION()
 	void ReceiveDamage(AActor* damagedActor, float damage, const UDamageType* damageType, AController* instigatorController, AActor* damageCauser);
 
+	void Eliminate();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastEliminate();
 
@@ -125,8 +128,35 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float m_Health = 100.f;
 
-	bool m_IsEliminated = false;
-
 	UFUNCTION()
 	void OnRep_Health();
+
+	//Elimination
+	bool m_IsEliminated = false;
+
+	FTimerHandle m_ElimTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float m_ElimDelay = 3.f;
+
+	void ElimTimerFinished();
+
+	//Dissolve effect
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* m_DissolveTimelineComponent;
+
+	FOnTimelineFloat m_DissolveTrack;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float dissolveValue);
+	void StartDissolve();
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Dissolve Curve"))
+	UCurveFloat* m_DissolveCurve;
+
+	UPROPERTY(VisibleAnywhere, Category = Elimination, meta = (DisplayName = "Dynamic Dissolve Material Instance"))
+	UMaterialInstanceDynamic* m_DynamicDissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere, Category = Elimination, meta = (DisplayName = "Dissolve Material Instance"))
+	UMaterialInstance* m_DissolveMaterialInstance;
 };

@@ -15,4 +15,5 @@ class SHOOTERNUKE_API ANukeGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	void PlayerEliminated(ANukeCharacter* eliminatedCharcter, ANukePlayerController* attackerPlayerController);
+	void RequestRespawn(ANukeCharacter* eliminatedCharcter);
 };
