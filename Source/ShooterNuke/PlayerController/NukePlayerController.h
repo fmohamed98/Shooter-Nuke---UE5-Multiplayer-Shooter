@@ -16,7 +16,7 @@ class SHOOTERNUKE_API ANukePlayerController : public APlayerController
 	GENERATED_BODY()
 protected:
 	void BeginPlay() override;
-	
+	void OnPossess(APawn* pawn) override;
 private:
 	ANukeHUD* m_NukeHUD;
 

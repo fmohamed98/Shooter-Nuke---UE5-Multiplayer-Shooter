@@ -6,12 +6,24 @@
 #include "ShooterNuke/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "ShooterNuke/Character/NukeCharacter.h"
 
 void ANukePlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
     m_NukeHUD = Cast<ANukeHUD>(GetHUD());
+}
+
+void ANukePlayerController::OnPossess(APawn* pawn)
+{
+    Super::OnPossess(pawn);
+
+    ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(pawn);
+    if (nukeCharacter != nullptr)
+    {
+        SetHUDHealth(nukeCharacter->GetHealth(), nukeCharacter->GetMaxHealth());
+    }
 }
 
 void ANukePlayerController::SetHUDHealth(float health, float maxHealth)

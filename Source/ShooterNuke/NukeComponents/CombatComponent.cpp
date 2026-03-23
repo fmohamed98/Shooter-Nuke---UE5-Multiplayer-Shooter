@@ -98,11 +98,25 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void UCombatComponent::OnRep_EquippedWeapon()
 {
-	if (m_EquippedWeapon != nullptr && m_Character != nullptr)
+	if (m_EquippedWeapon == nullptr || m_Character == nullptr)
 	{
-		m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		m_Character->bUseControllerRotationYaw = true;
+		return;
 	}
+
+	m_EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	USkeletalMeshComponent* nukeMesh = m_Character->GetMesh();
+	if (nukeMesh == nullptr)
+	{
+		return;
+	}
+
+	if (const USkeletalMeshSocket* gunSocket = nukeMesh->GetSocketByName(FName("GunSocket")))
+	{
+		gunSocket->AttachActor(m_EquippedWeapon, nukeMesh);
+	}
+	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	m_Character->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)

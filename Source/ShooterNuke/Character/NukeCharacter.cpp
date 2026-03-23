@@ -15,6 +15,9 @@
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "ShooterNuke/GameMode/NukeGameMode.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ANukeCharacter::ANukeCharacter()
@@ -101,6 +104,16 @@ void ANukeCharacter::PostInitializeComponents()
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->m_Character = this;
+	}
+}
+
+void ANukeCharacter::Destroyed()
+{
+	Super::Destroyed();
+
+	if (m_ElimBotComponent != nullptr)
+	{
+		m_ElimBotComponent->DestroyComponent();
 	}
 }
 
@@ -208,6 +221,11 @@ void ANukeCharacter::ReceiveDamage(AActor* damagedActor, float damage, const UDa
 
 void ANukeCharacter::Eliminate()
 {
+	if (m_CombatComponent != nullptr && m_CombatComponent->m_EquippedWeapon != nullptr)
+	{
+		m_CombatComponent->m_EquippedWeapon->Drop();
+	}
+
 	MultiCastEliminate();
 
 	GetWorldTimerManager().SetTimer(m_ElimTimer,this, &ANukeCharacter::ElimTimerFinished, m_ElimDelay);
@@ -225,8 +243,25 @@ void ANukeCharacter::MultiCastEliminate_Implementation()
 
 		m_DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f);
 	}
-
 	StartDissolve();
+
+	GetCharacterMovement()->DisableMovement(); //Movement
+	GetCharacterMovement()->StopMovementImmediately(); //Rotation
+	DisableInput(m_NukePlayerController);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (m_ElimBotEffect != nullptr)
+	{
+		FVector elimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f);
+		m_ElimBotComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_ElimBotEffect, elimBotSpawnPoint, GetActorRotation());
+	}
+
+	if (m_ElimBotSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_ElimBotSound, GetActorLocation(), GetActorRotation());
+	}
 }
 
 void ANukeCharacter::ElimTimerFinished()

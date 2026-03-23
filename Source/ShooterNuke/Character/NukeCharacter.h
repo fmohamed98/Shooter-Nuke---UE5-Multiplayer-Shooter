@@ -14,6 +14,7 @@ class UAnimMontage;
 class USpringArmComponent;
 class UCameraComponent;
 class UCombatComponent;
+class USoundCue;
 class AWeapon;
 class ANukePlayerController;
 
@@ -55,6 +56,7 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
 	void PostInitializeComponents() override;
+	void Destroyed() override;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (DisplayName = "Camera Boom"))
@@ -104,6 +106,8 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() { return m_FollowCamera; }
 	FORCEINLINE float GetAimOffsetYaw() const { return m_AimOffsetYaw; }
 	FORCEINLINE float GetAimOffsetPitch() const { return m_AimOffsetPitch; }
+	FORCEINLINE float GetHealth() const { return m_Health; }
+	FORCEINLINE float GetMaxHealth() const { return m_MaxHealth; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 	FORCEINLINE bool IsEliminated() const { return m_IsEliminated; }
 
@@ -159,4 +163,14 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Elimination, meta = (DisplayName = "Dissolve Material Instance"))
 	UMaterialInstance* m_DissolveMaterialInstance;
+
+	//ElimBot effect
+	UPROPERTY(EditAnywhere, Category = Elimination, meta = (DisplayName = "Elimination Bot Effect"))
+	UParticleSystem* m_ElimBotEffect;
+
+	UPROPERTY(VisibleAnywhere, Category = Elimination, meta = (DisplayName = "Elimination Bot Component"))
+	UParticleSystemComponent* m_ElimBotComponent;
+
+	UPROPERTY(EditAnywhere, Category = Elimination, meta = (DisplayName = "Elimination Bot SoundCue"))
+	USoundCue* m_ElimBotSound;
 };

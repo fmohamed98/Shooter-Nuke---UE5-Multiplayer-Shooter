@@ -60,6 +60,8 @@ public:
 	void ShowPickupWidget(const bool showWidget);
 	virtual void Fire(const FVector& hitTarget);
 
+	void Drop();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
 	USkeletalMeshComponent* m_WeaponMesh;

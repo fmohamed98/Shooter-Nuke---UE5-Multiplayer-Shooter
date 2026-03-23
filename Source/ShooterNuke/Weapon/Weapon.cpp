@@ -113,23 +113,56 @@ void AWeapon::OnRep_WeaponState()
 	{
 	case EWeaponState::EWS_Equipped:
 		ShowPickupWidget(false);
+		m_WeaponMesh->SetSimulatePhysics(false);
+		m_WeaponMesh->SetEnableGravity(false);
+		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		m_WeaponMesh->SetSimulatePhysics(true);
+		m_WeaponMesh->SetEnableGravity(true);
+		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
 
 void AWeapon::SetWeaponState(EWeaponState weaponState)
 {
-	m_WeaponState = weaponState;
+	if (m_AreaSphere == nullptr || m_WeaponMesh == nullptr)
+	{
+		return;
+	}
 
+	m_WeaponState = weaponState;
 	switch (m_WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
 		ShowPickupWidget(false);
-		if (m_AreaSphere != nullptr)
+		m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		m_WeaponMesh->SetSimulatePhysics(false);
+		m_WeaponMesh->SetEnableGravity(false);
+		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		if (HasAuthority())
 		{
-			m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		}
+		m_WeaponMesh->SetSimulatePhysics(true);
+		m_WeaponMesh->SetEnableGravity(true);
+		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
 
+void AWeapon::Drop()
+{
+	if (m_WeaponMesh == nullptr)
+	{
+		return;
+	}
+
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld, true);
+	m_WeaponMesh->DetachFromComponent(detachRules);
+	SetOwner(nullptr);
+}
