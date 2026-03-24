@@ -3,16 +3,39 @@
 
 #include "NukeGameMode.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/PlayerState/NukePlayerState.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 
 void ANukeGameMode::PlayerEliminated(ANukeCharacter* eliminatedCharacter, ANukePlayerController* attackerPlayerController)
 {
-    if (eliminatedCharacter != nullptr)
+    if (eliminatedCharacter == nullptr)
     {
-        eliminatedCharacter->Eliminate();
+        return;
     }
-}
+
+    ANukePlayerController* victimPlayerController = Cast<ANukePlayerController>(eliminatedCharacter->GetController());
+    if (victimPlayerController == nullptr || attackerPlayerController == nullptr)
+    {
+        return;
+    }
+
+    ANukePlayerState* attackerPlayerState = Cast<ANukePlayerState>(attackerPlayerController->PlayerState);
+    ANukePlayerState* victimPlayerState = Cast<ANukePlayerState>(victimPlayerController->PlayerState);
+
+    if (attackerPlayerState != nullptr && attackerPlayerState != victimPlayerState)
+    {
+        attackerPlayerState->AddToScore(1.f);
+    }
+
+    if (victimPlayerState != nullptr)
+    {
+        victimPlayerState->IncrementDeathCount();
+    }
+
+    eliminatedCharacter->Eliminate();
+ }
 
 void ANukeGameMode::RequestRespawn(ANukeCharacter* eliminatedCharacter)
 {

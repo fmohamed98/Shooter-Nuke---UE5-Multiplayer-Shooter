@@ -26,19 +26,31 @@ void ANukePlayerController::OnPossess(APawn* pawn)
     }
 }
 
-void ANukePlayerController::SetHUDHealth(float health, float maxHealth)
+bool ANukePlayerController::IsCharacterOverlayValid()
 {
+    m_NukeHUD = m_NukeHUD == nullptr ? Cast<ANukeHUD>(GetHUD()) : m_NukeHUD;
     if (m_NukeHUD == nullptr)
     {
-        return;
+        return false;
     }
 
     UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
     if (characterOverlay == nullptr)
     {
+        return false;
+    }
+
+    return true;
+}
+
+void ANukePlayerController::SetHUDHealth(float health, float maxHealth)
+{
+    if (!IsCharacterOverlayValid())
+    {
         return;
     }
 
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
     if (characterOverlay->m_HealthBar && characterOverlay->m_HealthText)
     {
         const float healthPercent = health / maxHealth;
@@ -50,5 +62,35 @@ void ANukePlayerController::SetHUDHealth(float health, float maxHealth)
             FText::AsNumber(FMath::CeilToInt(maxHealth))
         );
         characterOverlay->m_HealthText->SetText(healthText);
+    }
+}
+
+void ANukePlayerController::SetHUDScore(float scoreAmount)
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_ScoreAmount)
+    {
+        FText scoreText = FText::AsNumber(FMath::FloorToInt(scoreAmount));
+        characterOverlay->m_ScoreAmount->SetText(scoreText);
+    }
+}
+
+void ANukePlayerController::SetHUDDeathCount(uint32 deathCount)
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_DeathCount)
+    {
+        FText deathsText = FText::AsNumber(deathCount);
+        characterOverlay->m_DeathCount->SetText(deathsText);
     }
 }

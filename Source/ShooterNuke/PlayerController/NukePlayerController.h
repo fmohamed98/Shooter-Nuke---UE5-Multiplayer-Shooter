@@ -20,6 +20,10 @@ protected:
 private:
 	ANukeHUD* m_NukeHUD;
 
+	bool IsCharacterOverlayValid();
+
 public:
 	void SetHUDHealth(float health, float maxHealth);
+	void SetHUDScore(float scoreAmount);
+	void SetHUDDeathCount(uint32 deathCount);
 };
