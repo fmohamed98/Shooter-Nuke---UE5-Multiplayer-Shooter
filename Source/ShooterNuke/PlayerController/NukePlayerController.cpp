@@ -94,3 +94,18 @@ void ANukePlayerController::SetHUDDeathCount(uint32 deathCount)
         characterOverlay->m_DeathCount->SetText(deathsText);
     }
 }
+
+void ANukePlayerController::SetHUDWeaponAmmoCount(uint32 ammoCount)
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_WeaponAmmoCount)
+    {
+        FText ammoText = FText::AsNumber(ammoCount);
+        characterOverlay->m_WeaponAmmoCount->SetText(ammoText);
+    }
+}

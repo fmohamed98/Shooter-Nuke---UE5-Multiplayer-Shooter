@@ -10,6 +10,8 @@ class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
 class ABulletShell;
+class ANukeCharacter;
+class ANukePlayerController;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -56,8 +58,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void OnRep_Owner() override;
 
 	void ShowPickupWidget(const bool showWidget);
+	void SetHUDWeaponAmmo();
+
 	virtual void Fire(const FVector& hitTarget);
 
 	void Drop();
@@ -83,6 +88,17 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Bullet Shell"))
 	TSubclassOf<ABulletShell> m_BulletShellClass;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
+	uint32 m_Ammo;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Mag Capacity"))
+	uint32 m_MagCapacity;
 
 public:
 	//Textures
@@ -114,6 +130,9 @@ public:
 	FORCEINLINE float GetZoomInterpSpeed() const { return m_ZoomInterpSpeed; }
 
 private:
+	ANukeCharacter* m_OwningCharacter = nullptr;
+	ANukePlayerController* m_OwningCharacterController = nullptr;
+
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Zoomed FOV"))
 	float m_ZoomedFOV = 30.f;
 

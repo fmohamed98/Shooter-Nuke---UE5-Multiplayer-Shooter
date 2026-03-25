@@ -33,6 +33,11 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 		return;
 	}
 
+	if (m_EquippedWeapon != nullptr)
+	{
+		m_EquippedWeapon->Drop();
+	}
+
 	USkeletalMeshComponent* nukeMesh = m_Character->GetMesh();
 	if (nukeMesh == nullptr)
 	{
@@ -48,7 +53,7 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 	}
 
 	m_EquippedWeapon->SetOwner(m_Character);
-
+	m_EquippedWeapon->SetHUDWeaponAmmo();
 	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_Character->bUseControllerRotationYaw = true;
 }

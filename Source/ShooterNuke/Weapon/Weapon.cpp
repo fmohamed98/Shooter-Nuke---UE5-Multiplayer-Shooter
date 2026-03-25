@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimationAsset.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -47,6 +48,8 @@ void AWeapon::BeginPlay()
 		m_AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		m_AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
+
+	m_Ammo = m_MagCapacity;
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool isFromSweep, const FHitResult& sweepResult)
@@ -76,6 +79,22 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
+	DOREPLIFETIME(AWeapon, m_Ammo);
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+
+	if (Owner == nullptr)
+	{
+		m_OwningCharacterController = nullptr;
+		m_OwningCharacter = nullptr;
+	}
+	else
+	{
+		SetHUDWeaponAmmo();
+	}
 }
 
 void AWeapon::ShowPickupWidget(const bool showWidget)
@@ -105,6 +124,8 @@ void AWeapon::Fire(const FVector& hitTarget)
 	{
 		world->SpawnActor<ABulletShell>(m_BulletShellClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator());
 	}
+
+	SpendRound();
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -123,6 +144,34 @@ void AWeapon::OnRep_WeaponState()
 		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	SetHUDWeaponAmmo();
+}
+
+void AWeapon::SpendRound()
+{
+	m_Ammo--;
+	SetHUDWeaponAmmo();
+}
+
+void AWeapon::SetHUDWeaponAmmo()
+{
+	m_OwningCharacter = m_OwningCharacter == nullptr ? Cast<ANukeCharacter>(GetOwner()) : m_OwningCharacter;
+	if (m_OwningCharacter == nullptr)
+	{
+		return;
+	}
+
+	m_OwningCharacterController = m_OwningCharacterController == nullptr ? Cast<ANukePlayerController>(m_OwningCharacter->GetController()) : m_OwningCharacterController;
+	if (m_OwningCharacterController == nullptr)
+	{
+		return;
+	}
+
+	m_OwningCharacterController->SetHUDWeaponAmmoCount(m_Ammo);
 }
 
 void AWeapon::SetWeaponState(EWeaponState weaponState)
@@ -164,5 +213,8 @@ void AWeapon::Drop()
 	SetWeaponState(EWeaponState::EWS_Dropped);
 	FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld, true);
 	m_WeaponMesh->DetachFromComponent(detachRules);
+
 	SetOwner(nullptr);
+	m_OwningCharacterController = nullptr;
+	m_OwningCharacter = nullptr;
 }
