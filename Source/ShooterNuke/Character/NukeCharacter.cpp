@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "NukeCharacter.h"
@@ -224,6 +224,13 @@ void ANukeCharacter::Eliminate()
 	if (m_CombatComponent != nullptr && m_CombatComponent->m_EquippedWeapon != nullptr)
 	{
 		m_CombatComponent->m_EquippedWeapon->Drop();
+		m_CombatComponent->m_EquippedWeapon = nullptr;  // triggers OnRep_EquippedWeapon → hides ammo on client
+	}
+
+	m_NukePlayerController = m_NukePlayerController == nullptr ? Cast<ANukePlayerController>(Controller) : m_NukePlayerController;
+	if (m_NukePlayerController != nullptr)
+	{
+		m_NukePlayerController->HideHUDWeaponAmmo();
 	}
 
 	MultiCastEliminate();

@@ -153,6 +153,11 @@ void AWeapon::OnRep_Ammo()
 
 void AWeapon::SpendRound()
 {
+	if (m_Ammo == 0)
+	{
+		return;
+	}
+
 	m_Ammo--;
 	SetHUDWeaponAmmo();
 }
@@ -171,7 +176,7 @@ void AWeapon::SetHUDWeaponAmmo()
 		return;
 	}
 
-	m_OwningCharacterController->SetHUDWeaponAmmoCount(m_Ammo);
+	m_OwningCharacterController->SetHUDWeaponAmmo(m_Ammo);
 }
 
 void AWeapon::SetWeaponState(EWeaponState weaponState)

@@ -17,6 +17,8 @@ Saved/
 *.dll
 *.pdb
 
+Bugs Summary/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -95,7 +95,7 @@ void ANukePlayerController::SetHUDDeathCount(uint32 deathCount)
     }
 }
 
-void ANukePlayerController::SetHUDWeaponAmmoCount(uint32 ammoCount)
+void ANukePlayerController::SetHUDWeaponAmmo(uint32 ammoCount)
 {
     if (!IsCharacterOverlayValid())
     {
@@ -107,5 +107,22 @@ void ANukePlayerController::SetHUDWeaponAmmoCount(uint32 ammoCount)
     {
         FText ammoText = FText::AsNumber(ammoCount);
         characterOverlay->m_WeaponAmmoCount->SetText(ammoText);
+        characterOverlay->m_WeaponAmmoCount->SetVisibility(ESlateVisibility::Visible);
+        characterOverlay->m_WeaponAmmoText->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void ANukePlayerController::HideHUDWeaponAmmo()
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_WeaponAmmoCount && characterOverlay->m_WeaponAmmoText)
+    {
+        characterOverlay->m_WeaponAmmoCount->SetVisibility(ESlateVisibility::Hidden);
+        characterOverlay->m_WeaponAmmoText->SetVisibility(ESlateVisibility::Hidden);
     }
 }

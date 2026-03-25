@@ -26,5 +26,6 @@ public:
 	void SetHUDHealth(float health, float maxHealth);
 	void SetHUDScore(float scoreAmount);
 	void SetHUDDeathCount(uint32 deathCount);
-	void SetHUDWeaponAmmoCount(uint32 ammoCount);
+	void SetHUDWeaponAmmo(uint32 ammoCount);
+	void HideHUDWeaponAmmo();
 };

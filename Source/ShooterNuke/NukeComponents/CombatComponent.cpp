@@ -103,8 +103,17 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void UCombatComponent::OnRep_EquippedWeapon()
 {
-	if (m_EquippedWeapon == nullptr || m_Character == nullptr)
+	if(m_EquippedWeapon == nullptr)
 	{
+		// No weapon equipped — hide ammo on client
+		if (m_PlayerController == nullptr && m_Character != nullptr)
+		{
+			m_PlayerController = Cast<ANukePlayerController>(m_Character->GetController());
+		}
+		if (m_PlayerController != nullptr)
+		{
+			m_PlayerController->HideHUDWeaponAmmo();
+		}
 		return;
 	}
 
@@ -284,9 +293,19 @@ void UCombatComponent::FireButtonPressed(const bool isPressed)
 	}
 }
 
+bool UCombatComponent::CanFire()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return false;
+	}
+
+	return m_CanFire && (m_EquippedWeapon->GetAmmoCount() > 0);
+}
+
 void UCombatComponent::Fire()
 {
-	if (m_CanFire)
+	if (CanFire())
 	{
 		m_CanFire = false;
         ServerFire(m_HitTarget);

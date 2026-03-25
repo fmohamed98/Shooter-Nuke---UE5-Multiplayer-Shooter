@@ -67,6 +67,7 @@ public:
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
 
+	bool CanFire();
 	void Fire();
 
 private:

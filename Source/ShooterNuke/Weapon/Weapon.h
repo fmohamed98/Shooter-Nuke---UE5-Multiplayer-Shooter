@@ -128,6 +128,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return m_ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return m_ZoomInterpSpeed; }
+	FORCEINLINE uint32 GetAmmoCount() const { return m_Ammo; }
 
 private:
 	ANukeCharacter* m_OwningCharacter = nullptr;
