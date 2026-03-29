@@ -46,6 +46,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Eliminated"))
 	bool m_IsEliminated;
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Is Reloading"))
+	bool m_IsReloading;
+
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true", DisplayName = "Yaw Offset"))
 	float m_YawOffSet;
 

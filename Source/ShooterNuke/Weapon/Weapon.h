@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
+
 #include "Weapon.generated.h"
 
 class USphereComponent;
@@ -89,6 +91,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Bullet Shell"))
 	TSubclassOf<ABulletShell> m_BulletShellClass;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Type"))
+	EWeaponType m_WeaponType;
+
 	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
 	uint32 m_Ammo;
 
@@ -129,6 +134,7 @@ public:
 	FORCEINLINE float GetZoomedFOV() const { return m_ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return m_ZoomInterpSpeed; }
 	FORCEINLINE uint32 GetAmmoCount() const { return m_Ammo; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return m_WeaponType; }
 
 private:
 	ANukeCharacter* m_OwningCharacter = nullptr;

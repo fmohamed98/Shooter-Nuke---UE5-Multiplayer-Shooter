@@ -83,6 +83,7 @@ void ANukeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ANukeCharacter::AimButtonReleased);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ANukeCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ANukeCharacter::FireButtonReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ANukeCharacter::ReloadButtonPressed);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANukeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANukeCharacter::MoveRight);
@@ -179,6 +180,29 @@ void ANukeCharacter::PlayFireMontage()
 	}
 }
 
+void ANukeCharacter::PlayReloadMontage()
+{
+	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance != nullptr && m_ReloadMontage != nullptr)
+	{
+		animInstance->Montage_Play(m_ReloadMontage);
+		FName sectionName;
+
+		switch (m_CombatComponent->m_EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			sectionName = FName("Rifle");
+			break;
+		}
+		animInstance->Montage_JumpToSection(sectionName);
+	}
+}
+
 void ANukeCharacter::PlayHitReactMontage()
 {
 	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
@@ -230,7 +254,7 @@ void ANukeCharacter::Eliminate()
 	m_NukePlayerController = m_NukePlayerController == nullptr ? Cast<ANukePlayerController>(Controller) : m_NukePlayerController;
 	if (m_NukePlayerController != nullptr)
 	{
-		m_NukePlayerController->HideHUDWeaponAmmo();
+		m_NukePlayerController->HideHUDAmmo();
 	}
 
 	MultiCastEliminate();
@@ -372,6 +396,16 @@ void ANukeCharacter::UpdateHUDHealth()
 	}
 }
 
+ECombatState ANukeCharacter::GetCombatState() const
+{
+	if (m_CombatComponent == nullptr)
+	{
+		return ECombatState::ECS_MAX;
+	}
+
+	return m_CombatComponent->m_CombatState;
+}
+
 void ANukeCharacter::TurnInPlace(float deltaTime)
 {
 	if (m_AimOffsetYaw > 90.f)
@@ -499,6 +533,14 @@ void ANukeCharacter::FireButtonReleased()
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->FireButtonPressed(false);
+	}
+}
+
+void ANukeCharacter::ReloadButtonPressed()
+{
+	if (m_CombatComponent != nullptr)
+	{
+		m_CombatComponent->Reload();
 	}
 }
 

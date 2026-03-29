@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "ShooterNuke/NukeTypes/TurningInPlace.h"
+#include "ShooterNuke/NukeTypes/CombatState.h"
 #include "ShooterNuke/Interfaces/InteractWithCrosshairInterface.h"
 #include "Components/TimelineComponent.h"
 
@@ -43,6 +44,7 @@ protected:
 	void AimButtonReleased();
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void ReloadButtonPressed();
 	void AimOffset(const float deltaTime);
 
 	void UpdateHUDHealth();
@@ -74,11 +76,14 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
-	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Combat Component"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true", DisplayName = "Combat Component"))
 	UCombatComponent* m_CombatComponent;
 
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Weapon Montage"))
 	UAnimMontage* m_FireWeaponMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Reload Montage"))
+	UAnimMontage* m_ReloadMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Hit Reaction Montage"))
 	UAnimMontage* m_HitReactMontage;
@@ -92,6 +97,7 @@ public:
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
 	void PlayFireMontage();
+	void PlayReloadMontage();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
 
@@ -110,6 +116,7 @@ public:
 	FORCEINLINE float GetMaxHealth() const { return m_MaxHealth; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 	FORCEINLINE bool IsEliminated() const { return m_IsEliminated; }
+	ECombatState GetCombatState() const;
 
 private:
 	float m_InterpAimOffsetYaw = 0.f;

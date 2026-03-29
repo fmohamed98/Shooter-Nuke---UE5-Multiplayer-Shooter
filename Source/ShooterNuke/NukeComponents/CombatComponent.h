@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "ShooterNuke/HUD/NukeHUD.h"
+#include "ShooterNuke/Weapon/WeaponTypes.h"
+#include "ShooterNuke/NukeTypes/CombatState.h"
 
 #include "CombatComponent.generated.h"
 
@@ -23,7 +25,6 @@ public:
 	UCombatComponent();
 	friend ANukeCharacter;
 
-	void EquipWeapon(AWeapon* weapon);
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -61,6 +62,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(const FVector_NetQuantize& traceHitTarget);
 
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+
 	void TraceUnderCrossHairs(FHitResult& hitResult);
 	void SetHUDCrossHairs(const float deltaTime);
 public:
@@ -69,6 +73,12 @@ public:
 
 	bool CanFire();
 	void Fire();
+	void EquipWeapon(AWeapon* weapon);
+	void Reload();
+	void HandleReload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReload();
 
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Base Walk Speed"))
@@ -97,8 +107,27 @@ private:
 	//Automatic fire
 	FTimerHandle m_FireTimer;
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Assault Rifle Staring Ammo "))
+	uint32 m_StartingARAmmo = 30;
+
+	void InitCarriedAmmo();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	uint32 m_CarriedAmmo;
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int32>m_CarriedAmmoMap;
+
 	bool m_CanFire = true;
 
 	void StartFireTimer();
 	void FireTimerFinished();
+
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState m_CombatState = ECombatState::ECS_Unoccupied;
+
+	UFUNCTION()
+	void OnRep_CombatState();
 };

@@ -27,5 +27,6 @@ public:
 	void SetHUDScore(float scoreAmount);
 	void SetHUDDeathCount(uint32 deathCount);
 	void SetHUDWeaponAmmo(uint32 ammoCount);
-	void HideHUDWeaponAmmo();
+	void SetHUDCarriedAmmo(uint32 carriedAmmoCount);
+	void HideHUDAmmo();
 };
