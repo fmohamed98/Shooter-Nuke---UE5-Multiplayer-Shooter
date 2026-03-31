@@ -125,7 +125,6 @@ void ANukePlayerController::SetHUDCarriedAmmo(uint32 carriedAmmoCount)
         FText carriedAmmoText = FText::AsNumber(carriedAmmoCount);
         characterOverlay->m_CarriedAmmoCount->SetText(carriedAmmoText);
         characterOverlay->m_CarriedAmmoCount->SetVisibility(ESlateVisibility::Visible);
-        characterOverlay->m_CarriedAmmoCount->SetVisibility(ESlateVisibility::Visible);
     }
 }
 

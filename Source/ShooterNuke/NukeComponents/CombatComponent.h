@@ -76,6 +76,7 @@ public:
 	void EquipWeapon(AWeapon* weapon);
 	void Reload();
 	void HandleReload();
+	uint32 GetAmountToReload();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReload();
@@ -130,4 +131,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_CombatState();
+
+	void UpdateAmmoValues();
 };

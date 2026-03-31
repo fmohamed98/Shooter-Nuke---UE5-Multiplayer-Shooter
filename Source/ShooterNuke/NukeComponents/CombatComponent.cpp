@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 #include "Camera/CameraComponent.h"
+#include "Sound/SoundCue.h"
 
 constexpr float TRACE_LENGTH = 80000.f;
 
@@ -54,6 +55,11 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 
 	m_EquippedWeapon->SetOwner(m_Character);
 	m_EquippedWeapon->SetHUDWeaponAmmo();
+	
+	if (m_EquippedWeapon->m_EquipSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_EquippedWeapon->m_EquipSound, m_EquippedWeapon->GetActorLocation());
+	}
 
 	if (m_CarriedAmmoMap.Contains(m_EquippedWeapon->GetWeaponType()))
 	{
@@ -136,6 +142,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		return;
 	}
 
+	if (m_EquippedWeapon->m_EquipSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_EquippedWeapon->m_EquipSound, m_EquippedWeapon->GetActorLocation());
+	}
+
 	m_EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
 	USkeletalMeshComponent* nukeMesh = m_Character->GetMesh();
@@ -150,6 +161,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_Character->bUseControllerRotationYaw = true;
+
+	if (m_EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)
@@ -198,11 +214,31 @@ void UCombatComponent::HandleReload()
 	m_Character->PlayReloadMontage();
 }
 
+uint32 UCombatComponent::GetAmountToReload()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return 0;
+	}
+
+	checkf(m_EquippedWeapon->GetAmmoCount() <= m_EquippedWeapon->GetMagCapacity(), TEXT("Ammo greater than Mag Capacity"));
+	uint32 roomInMag = m_EquippedWeapon->GetMagCapacity() - m_EquippedWeapon->GetAmmoCount();
+
+	if (m_CarriedAmmoMap.Contains(m_EquippedWeapon->GetWeaponType()))
+	{
+		uint32 carriedAmmo = m_CarriedAmmoMap[m_EquippedWeapon->GetWeaponType()];
+		return FMath::Min(roomInMag, carriedAmmo);
+	}
+
+	return 0;
+}
+
 void UCombatComponent::FinishReload()
 {
 	if (m_Character != nullptr && m_Character->HasAuthority())
 	{
 		m_CombatState = ECombatState::ECS_Unoccupied;
+		UpdateAmmoValues();
 	}
 
 	if (m_IsFireButtonPressed)
@@ -233,6 +269,29 @@ void UCombatComponent::OnRep_CombatState()
 	default:
 		break;
 	}
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	uint32 reloadAmount = GetAmountToReload();
+	if (m_CarriedAmmoMap.Contains(m_EquippedWeapon->GetWeaponType()))
+	{
+		m_CarriedAmmoMap[m_EquippedWeapon->GetWeaponType()] -= reloadAmount;
+		m_CarriedAmmo = m_CarriedAmmoMap[m_EquippedWeapon->GetWeaponType()];
+	}
+
+	m_PlayerController = m_PlayerController == nullptr ? Cast<ANukePlayerController>(m_Character->Controller) : m_PlayerController;
+	if (m_PlayerController != nullptr)
+	{
+		m_PlayerController->SetHUDCarriedAmmo(m_CarriedAmmo);
+	}
+
+	m_EquippedWeapon->AddAmmo(reloadAmount);
 }
 
 void UCombatComponent::TraceUnderCrossHairs(FHitResult& traceHitResult)
@@ -402,6 +461,11 @@ void UCombatComponent::FireTimerFinished()
 	if (m_IsFireButtonPressed && m_EquippedWeapon->m_IsAutomatic)
 	{
 		Fire();
+	}
+
+	if (m_EquippedWeapon->IsEmpty())
+	{
+		Reload();
 	}
 }
 

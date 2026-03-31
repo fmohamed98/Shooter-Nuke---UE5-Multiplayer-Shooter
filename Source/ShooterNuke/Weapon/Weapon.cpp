@@ -223,3 +223,9 @@ void AWeapon::Drop()
 	m_OwningCharacterController = nullptr;
 	m_OwningCharacter = nullptr;
 }
+
+void AWeapon::AddAmmo(uint32 ammoToAdd)
+{
+	m_Ammo = FMath::Clamp(m_Ammo + ammoToAdd, 0, m_MagCapacity);
+	SetHUDWeaponAmmo();
+}

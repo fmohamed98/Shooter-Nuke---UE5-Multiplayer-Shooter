@@ -11,6 +11,7 @@
 class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
+class USoundCue;
 class ABulletShell;
 class ANukeCharacter;
 class ANukePlayerController;
@@ -68,6 +69,7 @@ public:
 	virtual void Fire(const FVector& hitTarget);
 
 	void Drop();
+	void AddAmmo(uint32 ammoToAdd);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Mesh"))
@@ -125,6 +127,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Delay"))
 	float m_FireDelay = .15f;
 
+	UPROPERTY(EditAnywhere, Category = Sound, meta = (DisplayName = "Equip Sound"))
+	USoundCue* m_EquipSound;
+
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Automatic"))
 	bool m_IsAutomatic = false;
 
@@ -134,7 +139,9 @@ public:
 	FORCEINLINE float GetZoomedFOV() const { return m_ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return m_ZoomInterpSpeed; }
 	FORCEINLINE uint32 GetAmmoCount() const { return m_Ammo; }
+	FORCEINLINE uint32 GetMagCapacity() const { return m_MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return m_WeaponType; }
+	FORCEINLINE bool IsEmpty() const { return m_Ammo == 0; }
 
 private:
 	ANukeCharacter* m_OwningCharacter = nullptr;
