@@ -15,6 +15,24 @@ void ANukePlayerController::BeginPlay()
     m_NukeHUD = Cast<ANukeHUD>(GetHUD());
 }
 
+void ANukePlayerController::Tick(float deltaTime)
+{
+    Super::Tick(deltaTime);
+
+    SetHUDTime();
+    CheckTimeSync(deltaTime);
+}
+
+void ANukePlayerController::CheckTimeSync(float deltaTime)
+{
+    m_TimeSyncRunningTime += deltaTime;
+    if (IsLocalController() && m_TimeSyncRunningTime >= m_TimeSyncFrequency)
+    {
+        ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+        m_TimeSyncRunningTime = 0.f;
+    }
+}
+
 void ANukePlayerController::OnPossess(APawn* pawn)
 {
     Super::OnPossess(pawn);
@@ -24,6 +42,41 @@ void ANukePlayerController::OnPossess(APawn* pawn)
     {
         SetHUDHealth(nukeCharacter->GetHealth(), nukeCharacter->GetMaxHealth());
     }
+}
+
+void ANukePlayerController::ReceivedPlayer()
+{
+    Super::ReceivedPlayer();
+
+    if (IsLocalController())
+    {
+        ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+    }
+}
+
+void ANukePlayerController::SetHUDTime()
+{
+    uint32 secondsLeft = FMath::CeilToInt(m_MatchTime - GetServerTime());
+
+    if (secondsLeft != m_CountDownSecs)
+    {
+        SetHUDMatchCountdown(secondsLeft);
+    }
+
+    m_CountDownSecs = secondsLeft;
+}
+
+void ANukePlayerController::ClientReportServerTime_Implementation(float timeOfClientRequest, float timeServerReceivedClientRequest)
+{
+    float roundTripTime = GetWorld()->GetTimeSeconds() - timeOfClientRequest;
+    float currentServerTime = timeServerReceivedClientRequest + roundTripTime * .5f;
+
+    m_ClientServerDelta = currentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+void ANukePlayerController::ServerRequestServerTime_Implementation(float timeOfClientRequest)
+{
+    ClientReportServerTime(timeOfClientRequest, GetWorld()->GetTimeSeconds());
 }
 
 bool ANukePlayerController::IsCharacterOverlayValid()
@@ -112,6 +165,29 @@ void ANukePlayerController::SetHUDWeaponAmmo(uint32 ammoCount)
     }
 }
 
+void ANukePlayerController::SetHUDMatchCountdown(float countdownTime)
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_MatchCountDownText)
+    {
+        uint32 minutes = FMath::FloorToInt(countdownTime / 60.f);
+        uint32 seconds = countdownTime - minutes * 60;
+
+        FText countdownText = FText::Format(
+            FText::FromString("{0}:{1}"),
+            FText::AsNumber(minutes),
+            FText::AsNumber(seconds)
+        );
+
+        characterOverlay->m_MatchCountDownText->SetText(countdownText);
+    }
+}
+
 void ANukePlayerController::SetHUDCarriedAmmo(uint32 carriedAmmoCount)
 {
     if (!IsCharacterOverlayValid())
@@ -143,5 +219,17 @@ void ANukePlayerController::HideHUDAmmo()
         characterOverlay->m_WeaponAmmoCount->SetVisibility(ESlateVisibility::Hidden);
         characterOverlay->m_WeaponAmmoText->SetVisibility(ESlateVisibility::Hidden);
         characterOverlay->m_CarriedAmmoCount->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+float ANukePlayerController::GetServerTime()
+{
+    if (HasAuthority())
+    {
+        return GetWorld()->GetTimeSeconds();
+    }
+    else
+    {
+        return GetWorld()->GetTimeSeconds() + m_ClientServerDelta;
     }
 }
