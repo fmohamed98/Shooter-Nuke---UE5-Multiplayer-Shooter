@@ -3,6 +3,7 @@
 
 #include "NukeHUD.h"
 #include "CharacterOverlay.h"
+#include "Announcement.h"
 
 void ANukeHUD::DrawHUD()
 {
@@ -28,6 +29,7 @@ void ANukeHUD::BeginPlay()
 {
     Super::BeginPlay();
 
+    AddAnnouncement();
     AddCharacterOverlay();
 }
 
@@ -38,6 +40,17 @@ void ANukeHUD::AddCharacterOverlay()
     {
         m_CharacterOverlay = CreateWidget<UCharacterOverlay>(playerController, m_CharacterOverlayClass);
         m_CharacterOverlay->AddToViewport();
+        m_CharacterOverlay->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+void ANukeHUD::AddAnnouncement()
+{
+    APlayerController* playerController = GetOwningPlayerController();
+    if (playerController != nullptr && m_AnnouncementClass)
+    {
+        m_Announcement = CreateWidget<UAnnouncement>(playerController, m_AnnouncementClass);
+        m_Announcement->AddToViewport();
     }
 }
 

@@ -19,6 +19,8 @@ protected:
 	void Tick(float deltaTime) override;
 	void OnPossess(APawn* pawn) override;
 	void ReceivedPlayer() override;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
+
 	//Time
 	void SetHUDTime();
 
@@ -30,20 +32,34 @@ protected:
 
 	float m_ClientServerDelta = 0.f; //diff b/w client & server time
 
-	UPROPERTY(EditAnywhere, Category = Time)
+	UPROPERTY(EditAnywhere, Category = Time, meta = (DisplayName = "Time Sync Frequency"))
 	float m_TimeSyncFrequency = 5.f;
 
 	float m_TimeSyncRunningTime = 0.f;
 
 private:
-	ANukeHUD* m_NukeHUD;
+	ANukeHUD* m_NukeHUD = nullptr;
 
-	float m_MatchTime = 120.f;
+	float m_MatchTime = 0.f;
+	float m_WarmupTime = 0.f;
+	float m_LevelStartingTime = 0.f;
 
 	uint32 m_CountDownSecs = 0;
 
 	bool IsCharacterOverlayValid();
 	void CheckTimeSync(float deltaTime);
+
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidGame(FName matchState, float warmupTime, float matchTime, float startingTime);
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName m_MatchState;
+
+	UFUNCTION()
+	void OnRep_MatchState();
 
 public:
 	void SetHUDHealth(float health, float maxHealth);
@@ -51,8 +67,11 @@ public:
 	void SetHUDDeathCount(uint32 deathCount);
 	void SetHUDWeaponAmmo(uint32 ammoCount);
 	void SetHUDMatchCountdown(float countdownTime);
+	void SetHUDAnnouncementCountdown(float countdownTime);
 	void SetHUDCarriedAmmo(uint32 carriedAmmoCount);
 	void HideHUDAmmo();
 	
 	float GetServerTime();
+
+	void OnMatchStateSet(FName& matchState);
 };
