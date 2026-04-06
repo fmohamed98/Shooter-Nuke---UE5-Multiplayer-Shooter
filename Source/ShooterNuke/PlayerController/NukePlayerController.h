@@ -7,9 +7,8 @@
 #include "NukePlayerController.generated.h"
 
 class ANukeHUD;
-/**
- * 
- */
+class ANukeGameMode;
+
 UCLASS()
 class SHOOTERNUKE_API ANukePlayerController : public APlayerController
 {
@@ -39,9 +38,11 @@ protected:
 
 private:
 	ANukeHUD* m_NukeHUD = nullptr;
+	ANukeGameMode* m_NukeGameMode = nullptr;
 
 	float m_MatchTime = 0.f;
 	float m_WarmupTime = 0.f;
+	float m_CooldownTime = 0.f;
 	float m_LevelStartingTime = 0.f;
 
 	uint32 m_CountDownSecs = 0;
@@ -53,13 +54,15 @@ private:
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-	void ClientJoinMidGame(FName matchState, float warmupTime, float matchTime, float startingTime);
+	void ClientJoinMidGame(FName matchState, float warmupTime, float matchTime, float cooldownTime, float startingTime);
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName m_MatchState;
 
 	UFUNCTION()
 	void OnRep_MatchState();
+
+	void HandleMatchState();
 
 public:
 	void SetHUDHealth(float health, float maxHealth);

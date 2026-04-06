@@ -8,6 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 
+namespace MatchState
+{
+    const FName Cooldown = FName("Cooldown");
+}
+
 ANukeGameMode::ANukeGameMode()
 {
     bDelayedStart = true;
@@ -74,6 +79,14 @@ void ANukeGameMode::Tick(float deltaTime)
         if (m_CountDownTime <= 0.f)
         {
             StartMatch();
+        }
+    }
+    else if (MatchState == MatchState::InProgress)
+    {
+        m_CountDownTime = m_WarmupTime + m_MatchTime - (GetWorld()->GetTimeSeconds() - m_LevelStartingTime);
+        if (m_CountDownTime <= 0.f)
+        {
+            SetMatchState(MatchState::Cooldown);
         }
     }
 }

@@ -39,11 +39,12 @@ void ANukePlayerController::CheckTimeSync(float deltaTime)
     }
 }
 
-void ANukePlayerController::ClientJoinMidGame_Implementation(FName matchState, float warmupTime, float matchTime, float startingTime)
+void ANukePlayerController::ClientJoinMidGame_Implementation(FName matchState, float warmupTime, float matchTime, float cooldownTime, float startingTime)
 {
     m_MatchState = matchState;
     m_WarmupTime = warmupTime;
     m_MatchTime = matchTime;
+    m_CooldownTime = cooldownTime;
     m_LevelStartingTime = startingTime;
 
     OnMatchStateSet(m_MatchState);
@@ -59,10 +60,11 @@ void ANukePlayerController::ServerCheckMatchState_Implementation()
 
     m_WarmupTime = nukeGameMode->m_WarmupTime;
     m_MatchTime = nukeGameMode->m_MatchTime;
+    m_CooldownTime = nukeGameMode->m_CooldownTime;
     m_LevelStartingTime = nukeGameMode->m_LevelStartingTime;
 
     m_MatchState = nukeGameMode->GetMatchState();
-    ClientJoinMidGame(m_MatchState, m_WarmupTime, m_MatchTime, m_LevelStartingTime);
+    ClientJoinMidGame(m_MatchState, m_WarmupTime, m_MatchTime, m_CooldownTime, m_LevelStartingTime);
 }
 
 void ANukePlayerController::OnPossess(APawn* pawn)
@@ -104,12 +106,25 @@ void ANukePlayerController::SetHUDTime()
     {
         timeLeft = m_WarmupTime + m_MatchTime - (GetServerTime() - m_LevelStartingTime);
     }
-
+    else if (m_MatchState == MatchState::Cooldown)
+    {
+        timeLeft = m_WarmupTime + m_MatchTime + m_CooldownTime - (GetServerTime() - m_LevelStartingTime);
+    }
     uint32 secondsLeft = FMath::CeilToInt(timeLeft);
+
+
+    if (HasAuthority())
+    {
+        m_NukeGameMode = m_NukeGameMode == nullptr ? Cast<ANukeGameMode>(UGameplayStatics::GetGameMode(this)) : m_NukeGameMode;
+        if (m_NukeGameMode != nullptr)
+        {
+            secondsLeft = FMath::CeilToInt(m_NukeGameMode->GetCountDownTime());
+        }
+    }
 
     if (secondsLeft != m_CountDownSecs)
     {
-        if (m_MatchState == MatchState::WaitingToStart)
+        if (m_MatchState == MatchState::WaitingToStart || m_MatchState == MatchState::Cooldown)
         {
             SetHUDAnnouncementCountdown(timeLeft);
         }
@@ -231,6 +246,12 @@ void ANukePlayerController::SetHUDMatchCountdown(float countdownTime)
     UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
     if (characterOverlay->m_MatchCountDownText)
     {
+        if (countdownTime < 0.f)
+        {
+            characterOverlay->m_MatchCountDownText->SetText(FText());
+            return;
+        }
+
         uint32 minutes = FMath::FloorToInt(countdownTime / 60.f);
         uint32 seconds = countdownTime - minutes * 60;
 
@@ -255,6 +276,12 @@ void ANukePlayerController::SetHUDAnnouncementCountdown(float countdownTime)
     UAnnouncement* announcement = m_NukeHUD->m_Announcement;
     if (announcement && announcement->m_WarmupTime)
     {
+        if (countdownTime < 0.f)
+        {
+            announcement->m_WarmupTime->SetText(FText());
+            return;
+        }
+
         uint32 minutes = FMath::FloorToInt(countdownTime / 60.f);
         uint32 seconds = countdownTime - minutes * 60;
 
@@ -318,31 +345,22 @@ void ANukePlayerController::OnMatchStateSet(FName& matchState)
 {
     m_MatchState = matchState;
 
-    if (!IsCharacterOverlayValid())
-    {
-        return;
-    }
-
-    if (m_NukeHUD->m_Announcement == nullptr)
-    {
-        return;
-    }
-
-    if (m_MatchState == MatchState::InProgress)
-    {
-        m_NukeHUD->m_Announcement->SetVisibility(ESlateVisibility::Hidden);
-        m_NukeHUD->m_CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
-    }
+    HandleMatchState();
 }
 
 void ANukePlayerController::OnRep_MatchState()
+{
+    HandleMatchState();
+}
+
+void ANukePlayerController::HandleMatchState()
 {
     if (!IsCharacterOverlayValid())
     {
         return;
     }
 
-    if (m_NukeHUD->m_Announcement == nullptr)
+    if (m_NukeHUD->m_Announcement == nullptr || m_NukeHUD->m_Announcement->m_AnnouncementText == nullptr)
     {
         return;
     }
@@ -351,5 +369,13 @@ void ANukePlayerController::OnRep_MatchState()
     {
         m_NukeHUD->m_Announcement->SetVisibility(ESlateVisibility::Hidden);
         m_NukeHUD->m_CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
+    }
+    else if (m_MatchState == MatchState::Cooldown)
+    {
+        m_NukeHUD->m_Announcement->SetVisibility(ESlateVisibility::Visible);
+        FText cooldownText = FText::FromString("New Match Starts In :");
+        m_NukeHUD->m_Announcement->m_AnnouncementText->SetText(cooldownText);
+
+        m_NukeHUD->m_CharacterOverlay->SetVisibility(ESlateVisibility::Hidden);
     }
 }

@@ -9,6 +9,11 @@
 class ANukeCharacter;
 class ANukePlayerController;
 
+namespace MatchState
+{
+	extern SHOOTERNUKE_API const FName Cooldown; //match duration reached-> display winner & start cooldown timer
+}
+
 UCLASS()
 class SHOOTERNUKE_API ANukeGameMode : public AGameMode
 {
@@ -28,8 +33,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Match Time"))
 	float m_MatchTime = 120.f;
 
+	UPROPERTY(EditDefaultsOnly, meta = (DisplayName = "Cooldown Time"))
+	float m_CooldownTime = 10.f;
+
 	float m_LevelStartingTime = 0.f;
 
+	FORCEINLINE float GetCountDownTime() const { return m_CountDownTime; }
 protected:
 	void BeginPlay() override;
 	void OnMatchStateSet() override;
