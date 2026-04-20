@@ -12,6 +12,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "ShooterNuke/NukeComponents/CombatComponent.h"
+#include "ShooterNuke/GameState/NukeGameState.h"
+#include "ShooterNuke/PlayerState/NukePlayerState.h"
 
 void ANukePlayerController::BeginPlay()
 {
@@ -161,6 +163,30 @@ bool ANukePlayerController::IsCharacterOverlayValid()
 
     UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
     if (characterOverlay == nullptr)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool ANukePlayerController::IsAnnouncementValid()
+{
+    m_NukeHUD = m_NukeHUD == nullptr ? Cast<ANukeHUD>(GetHUD()) : m_NukeHUD;
+    if (m_NukeHUD == nullptr)
+    {
+        return false;
+    }
+
+    UAnnouncement* announcement = m_NukeHUD->m_Announcement;
+    if (announcement == nullptr)
+    {
+        return false;
+    }
+
+    if (announcement->m_InfoText == nullptr ||
+        announcement->m_AnnouncementText == nullptr ||
+        announcement->m_WarmupTime == nullptr)
     {
         return false;
     }
@@ -371,12 +397,7 @@ void ANukePlayerController::HandleMatchState()
         }
     }
 
-    if (!IsCharacterOverlayValid())
-    {
-        return;
-    }
-
-    if (m_NukeHUD->m_Announcement == nullptr || m_NukeHUD->m_Announcement->m_AnnouncementText == nullptr)
+    if (!IsCharacterOverlayValid() || !IsAnnouncementValid())
     {
         return;
     }
@@ -392,5 +413,46 @@ void ANukePlayerController::HandleMatchState()
         FText cooldownText = FText::FromString("New Match Starts In :");
         m_NukeHUD->m_Announcement->m_AnnouncementText->SetText(cooldownText);
         m_NukeHUD->m_CharacterOverlay->SetVisibility(ESlateVisibility::Hidden);
+
+        ANukeGameState* nukeGameState = Cast<ANukeGameState>(UGameplayStatics::GetGameState(this));
+        ANukePlayerState* nukePlayerState = GetPlayerState<ANukePlayerState>();
+        if (nukeGameState!= nullptr && nukePlayerState != nullptr)
+        {
+            TArray<ANukePlayerState*>& topScoringPlayers = nukeGameState->m_TopScoringPlayers;
+            FString infoString;
+
+            if (topScoringPlayers.Num() == 0)
+            {
+                infoString = "There is no winner";
+            }
+            else if (topScoringPlayers.Num() == 1 && topScoringPlayers[0] == nukePlayerState)
+            {
+                infoString = "You are the winner!";
+            }
+            else if (topScoringPlayers.Num() == 1)
+            {
+                infoString = FString::Printf(
+                    TEXT("Winner : %s"),
+                    *topScoringPlayers[0]->GetPlayerName()
+                );
+            }
+            else if (topScoringPlayers.Num() > 1)
+            {
+                infoString = "Players tied for the win:\n";
+
+                for (const auto& tiedPlayer : topScoringPlayers)
+                {
+                    if (tiedPlayer == nullptr)
+                    {
+                        continue;
+                    }
+
+                    infoString += tiedPlayer->GetPlayerName();
+                    infoString += "\n";
+                }
+            }
+
+            m_NukeHUD->m_Announcement->m_InfoText->SetText(FText::FromString(infoString));
+        }
     }
 }

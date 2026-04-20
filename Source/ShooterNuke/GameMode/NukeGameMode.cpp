@@ -4,6 +4,7 @@
 #include "NukeGameMode.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/PlayerState/NukePlayerState.h"
+#include "ShooterNuke/GameState/NukeGameState.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
@@ -34,9 +35,12 @@ void ANukeGameMode::PlayerEliminated(ANukeCharacter* eliminatedCharacter, ANukeP
     ANukePlayerState* attackerPlayerState = Cast<ANukePlayerState>(attackerPlayerController->PlayerState);
     ANukePlayerState* victimPlayerState = Cast<ANukePlayerState>(victimPlayerController->PlayerState);
 
-    if (attackerPlayerState != nullptr && attackerPlayerState != victimPlayerState)
+    ANukeGameState* nukeGameState = GetGameState<ANukeGameState>();
+
+    if (attackerPlayerState != nullptr && attackerPlayerState != victimPlayerState && nukeGameState != nullptr)
     {
         attackerPlayerState->AddToScore(1.f);
+        nukeGameState->UpdateTopScore(attackerPlayerState);
     }
 
     if (victimPlayerState != nullptr)

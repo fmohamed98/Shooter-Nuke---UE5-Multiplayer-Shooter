@@ -19,4 +19,7 @@ public:
 	
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* m_AnnouncementText;
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* m_InfoText;
 };

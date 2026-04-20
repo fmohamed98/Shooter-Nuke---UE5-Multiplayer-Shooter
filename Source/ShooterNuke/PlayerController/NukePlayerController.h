@@ -48,6 +48,7 @@ private:
 	uint32 m_CountDownSecs = 0;
 
 	bool IsCharacterOverlayValid();
+	bool IsAnnouncementValid();
 	void CheckTimeSync(float deltaTime);
 
 	UFUNCTION(Server, Reliable)
