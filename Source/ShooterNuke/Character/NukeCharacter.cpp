@@ -97,6 +97,7 @@ void ANukeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME_CONDITION(ANukeCharacter, m_OverlappingWeapon,COND_OwnerOnly);
 	DOREPLIFETIME(ANukeCharacter, m_Health);
+	DOREPLIFETIME(ANukeCharacter, m_DisableGameplay);
 }
 
 void ANukeCharacter::PostInitializeComponents()
@@ -115,6 +116,11 @@ void ANukeCharacter::Destroyed()
 	if (m_ElimBotComponent != nullptr)
 	{
 		m_ElimBotComponent->DestroyComponent();
+	}
+
+	if (m_CombatComponent != nullptr && m_CombatComponent->m_EquippedWeapon != nullptr)
+	{
+		m_CombatComponent->m_EquippedWeapon->Destroy();
 	}
 }
 
@@ -278,7 +284,7 @@ void ANukeCharacter::MultiCastEliminate_Implementation()
 
 	GetCharacterMovement()->DisableMovement(); //Movement
 	GetCharacterMovement()->StopMovementImmediately(); //Rotation
-	DisableInput(m_NukePlayerController);
+	m_DisableGameplay = true;
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -351,6 +357,13 @@ void ANukeCharacter::HideCameraIfCharacterClose()
 
 void ANukeCharacter::AimOffset(const float deltaTime)
 {
+	if (m_DisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		m_TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+
 	if (m_CombatComponent == nullptr || m_CombatComponent->m_EquippedWeapon == nullptr)
 	{
 		return;
@@ -435,6 +448,11 @@ void ANukeCharacter::TurnInPlace(float deltaTime)
 
 void ANukeCharacter::Jump()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -447,6 +465,11 @@ void ANukeCharacter::Jump()
 
 void ANukeCharacter::MoveForward(const float value)
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (Controller != nullptr && value != 0.f)
 	{
 		const FRotator yawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -457,6 +480,11 @@ void ANukeCharacter::MoveForward(const float value)
 
 void ANukeCharacter::MoveRight(const float value)
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (Controller != nullptr && value != 0.f)
 	{
 		const FRotator yawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -477,6 +505,11 @@ void ANukeCharacter::LookUp(const float value)
 
 void ANukeCharacter::EquipButtonPressed()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent == nullptr)
 	{
 		return;
@@ -494,6 +527,11 @@ void ANukeCharacter::EquipButtonPressed()
 
 void ANukeCharacter::CrouchButtonPressed()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -506,6 +544,11 @@ void ANukeCharacter::CrouchButtonPressed()
 
 void ANukeCharacter::AimButtonPressed()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->SetAiming(true);
@@ -514,6 +557,11 @@ void ANukeCharacter::AimButtonPressed()
 
 void ANukeCharacter::AimButtonReleased()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->SetAiming(false);
@@ -522,6 +570,11 @@ void ANukeCharacter::AimButtonReleased()
 
 void ANukeCharacter::FireButtonPressed()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->FireButtonPressed(true);
@@ -530,6 +583,11 @@ void ANukeCharacter::FireButtonPressed()
 
 void ANukeCharacter::FireButtonReleased()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->FireButtonPressed(false);
@@ -538,6 +596,11 @@ void ANukeCharacter::FireButtonReleased()
 
 void ANukeCharacter::ReloadButtonPressed()
 {
+	if (m_DisableGameplay)
+	{
+		return;
+	}
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->Reload();

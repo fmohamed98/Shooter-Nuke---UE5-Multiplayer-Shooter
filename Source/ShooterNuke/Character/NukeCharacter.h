@@ -116,7 +116,11 @@ public:
 	FORCEINLINE float GetMaxHealth() const { return m_MaxHealth; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 	FORCEINLINE bool IsEliminated() const { return m_IsEliminated; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return m_CombatComponent; }
 	ECombatState GetCombatState() const;
+
+	UPROPERTY(Replicated)
+	bool m_DisableGameplay = false;
 
 private:
 	float m_InterpAimOffsetYaw = 0.f;

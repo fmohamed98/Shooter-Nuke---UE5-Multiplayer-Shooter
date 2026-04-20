@@ -76,6 +76,48 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
 	m_Character->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (m_EquippedWeapon == nullptr)
+	{
+		// No weapon equipped — hide ammo on client
+		if (m_PlayerController == nullptr && m_Character != nullptr)
+		{
+			m_PlayerController = Cast<ANukePlayerController>(m_Character->GetController());
+		}
+		if (m_PlayerController != nullptr)
+		{
+			m_PlayerController->HideHUDAmmo();
+		}
+		return;
+	}
+
+	if (m_EquippedWeapon->m_EquipSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_EquippedWeapon->m_EquipSound, m_EquippedWeapon->GetActorLocation());
+	}
+
+	m_EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+	USkeletalMeshComponent* nukeMesh = m_Character->GetMesh();
+	if (nukeMesh == nullptr)
+	{
+		return;
+	}
+
+	if (const USkeletalMeshSocket* gunSocket = nukeMesh->GetSocketByName(FName("GunSocket")))
+	{
+		gunSocket->AttachActor(m_EquippedWeapon, nukeMesh);
+	}
+	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	m_Character->bUseControllerRotationYaw = true;
+
+	if (m_EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
+}
+
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
@@ -124,48 +166,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, m_IsAiming);
 	DOREPLIFETIME_CONDITION(UCombatComponent, m_CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UCombatComponent, m_CombatState);
-}
-
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if(m_EquippedWeapon == nullptr)
-	{
-		// No weapon equipped — hide ammo on client
-		if (m_PlayerController == nullptr && m_Character != nullptr)
-		{
-			m_PlayerController = Cast<ANukePlayerController>(m_Character->GetController());
-		}
-		if (m_PlayerController != nullptr)
-		{
-			m_PlayerController->HideHUDAmmo();
-		}
-		return;
-	}
-
-	if (m_EquippedWeapon->m_EquipSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, m_EquippedWeapon->m_EquipSound, m_EquippedWeapon->GetActorLocation());
-	}
-
-	m_EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-
-	USkeletalMeshComponent* nukeMesh = m_Character->GetMesh();
-	if (nukeMesh == nullptr)
-	{
-		return;
-	}
-
-	if (const USkeletalMeshSocket* gunSocket = nukeMesh->GetSocketByName(FName("GunSocket")))
-	{
-		gunSocket->AttachActor(m_EquippedWeapon, nukeMesh);
-	}
-	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	m_Character->bUseControllerRotationYaw = true;
-
-	if (m_EquippedWeapon->IsEmpty())
-	{
-		Reload();
-	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(const bool isAiming)

@@ -89,6 +89,14 @@ void ANukeGameMode::Tick(float deltaTime)
             SetMatchState(MatchState::Cooldown);
         }
     }
+    else if (MatchState == MatchState::Cooldown)
+    {
+        m_CountDownTime = m_WarmupTime + m_MatchTime + m_CooldownTime - (GetWorld()->GetTimeSeconds() - m_LevelStartingTime);
+        if (m_CountDownTime <= 0.f)
+        {
+            RestartGame();
+        }
+    }
 }
 
 void ANukeGameMode::BeginPlay()

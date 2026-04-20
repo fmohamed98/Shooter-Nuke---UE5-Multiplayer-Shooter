@@ -11,6 +11,7 @@
 #include "ShooterNuke/GameMode/NukeGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "ShooterNuke/NukeComponents/CombatComponent.h"
 
 void ANukePlayerController::BeginPlay()
 {
@@ -355,6 +356,21 @@ void ANukePlayerController::OnRep_MatchState()
 
 void ANukePlayerController::HandleMatchState()
 {
+    // Must run before the HUD check: on the server, non-host PlayerControllers have no HUD,
+    // so IsCharacterOverlayValid() returns false and would skip this, leaving m_DisableGameplay
+    // as false on the server. The server would then replicate false back to the client, overriding
+    // the client's local true and leaving the character's rotation unlocked during cooldown.
+    if (m_MatchState == MatchState::Cooldown)
+    {
+        ANukeCharacter* nukeCharacter = Cast<ANukeCharacter>(GetPawn());
+        if (nukeCharacter != nullptr && nukeCharacter->GetCombatComponent())
+        {
+            nukeCharacter->m_DisableGameplay = true;
+            nukeCharacter->GetCombatComponent()->FireButtonPressed(false);
+            nukeCharacter->GetCombatComponent()->SetAiming(false);
+        }
+    }
+
     if (!IsCharacterOverlayValid())
     {
         return;
@@ -375,7 +391,6 @@ void ANukePlayerController::HandleMatchState()
         m_NukeHUD->m_Announcement->SetVisibility(ESlateVisibility::Visible);
         FText cooldownText = FText::FromString("New Match Starts In :");
         m_NukeHUD->m_Announcement->m_AnnouncementText->SetText(cooldownText);
-
         m_NukeHUD->m_CharacterOverlay->SetVisibility(ESlateVisibility::Hidden);
     }
 }
