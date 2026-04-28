@@ -286,6 +286,7 @@ void ANukeCharacter::MultiCastEliminate_Implementation()
 	GetCharacterMovement()->StopMovementImmediately(); //Rotation
 	m_DisableGameplay = true;
 
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 

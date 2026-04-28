@@ -472,6 +472,8 @@ void UCombatComponent::FireTimerFinished()
 void UCombatComponent::InitCarriedAmmo()
 {
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, m_StartingARAmmo); 
+	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, m_StartingRocketAmmo); 
+
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
