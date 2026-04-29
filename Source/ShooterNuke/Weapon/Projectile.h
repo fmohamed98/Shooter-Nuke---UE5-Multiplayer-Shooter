@@ -26,8 +26,18 @@ protected:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult);
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Particles"))
+	UParticleSystem* m_ImpactParticles;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Sound"))
+	USoundCue* m_ImpactSound;
+
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
 	float m_Damage = 5.f;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Collision Box"))
+	UBoxComponent* m_CollisionBox;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -35,18 +45,9 @@ public:
 	void Destroyed() override;
 
 private:
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Collision Box"))
-	UBoxComponent* m_CollisionBox;
-
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Movement Component"))
 	UProjectileMovementComponent* m_ProjectileMovementComponent;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Tracer"))
 	UParticleSystem* m_Tracer;
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Particles"))
-	UParticleSystem* m_ImpactParticles;
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Sound"))
-	USoundCue* m_ImpactSound;
 };
