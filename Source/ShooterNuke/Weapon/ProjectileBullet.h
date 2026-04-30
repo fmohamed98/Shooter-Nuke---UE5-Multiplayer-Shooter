@@ -13,6 +13,10 @@ UCLASS()
 class SHOOTERNUKE_API AProjectileBullet : public AProjectile
 {
 	GENERATED_BODY()
+
+public:
+	AProjectileBullet();
+
 protected:
 	void OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hitResult) override;
 };

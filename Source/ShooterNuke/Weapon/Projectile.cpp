@@ -3,7 +3,6 @@
 
 #include "Projectile.h"
 #include "Components/BoxComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
@@ -25,9 +24,6 @@ AProjectile::AProjectile()
 	m_CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	m_CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 	m_CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
-
-	m_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	m_ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
 // Called when the game starts or when spawned
@@ -43,6 +39,7 @@ void AProjectile::BeginPlay()
 	if (m_CollisionBox != nullptr && HasAuthority())
 	{
 		m_CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+		m_CollisionBox->IgnoreActorWhenMoving(Owner,true);
 	}
 }
 

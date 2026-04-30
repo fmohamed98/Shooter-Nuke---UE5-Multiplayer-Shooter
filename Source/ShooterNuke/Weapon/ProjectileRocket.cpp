@@ -10,16 +10,27 @@
 #include "Components/BoxComponent.h"
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
+#include "RocketMovementComponent.h"
 
 AProjectileRocket::AProjectileRocket()
 {
 	m_RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
 	m_RocketMesh->SetupAttachment(RootComponent);
 	m_RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_RocketMovementComponent = CreateDefaultSubobject<URocketMovementComponent>(TEXT("RocketMovementComponent"));
+	m_RocketMovementComponent->bRotationFollowsVelocity = true;
+	m_RocketMovementComponent->SetIsReplicated(true);
 }
 
 void AProjectileRocket::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector NormalImpulse, const FHitResult& hitResult)
 {
+	if (otherActor == GetOwner())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit self"));
+		return;
+	}
+	
 	APawn* firingPawn = GetInstigator();
 	if (firingPawn != nullptr && HasAuthority())
 	{

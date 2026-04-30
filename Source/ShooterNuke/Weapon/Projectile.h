@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Collision Box"))
 	UBoxComponent* m_CollisionBox;
 
+	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Movement Component"))
+	UProjectileMovementComponent* m_ProjectileMovementComponent;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -45,9 +48,6 @@ public:
 	void Destroyed() override;
 
 private:
-	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Movement Component"))
-	UProjectileMovementComponent* m_ProjectileMovementComponent;
-
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Tracer"))
 	UParticleSystem* m_Tracer;
 };

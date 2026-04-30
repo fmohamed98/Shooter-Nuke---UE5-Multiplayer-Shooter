@@ -8,6 +8,7 @@
 
 class UNiagaraSystem;
 class UNiagaraComponent;
+class URocketMovementComponent;
 
 UCLASS()
 class SHOOTERNUKE_API AProjectileRocket : public AProjectile
@@ -34,6 +35,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Sound Loop Attenuation"))
 	USoundAttenuation* m_SoundLoopAttenuation;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Rocket Movement Component"))
+	URocketMovementComponent* m_RocketMovementComponent;
 
 private:
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Trail System"))

@@ -201,6 +201,7 @@ void ANukeCharacter::PlayReloadMontage()
 
 		switch (m_CombatComponent->m_EquippedWeapon->GetWeaponType())
 		{
+		case EWeaponType::EWT_RocketLauncher:
 		case EWeaponType::EWT_AssaultRifle:
 			sectionName = FName("Rifle");
 			break;
