@@ -108,11 +108,14 @@ private:
 	//Automatic fire
 	FTimerHandle m_FireTimer;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Assault Rifle Staring Ammo "))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Assault Rifle Starting Ammo "))
 	uint32 m_StartingARAmmo = 30;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Assault Rifle Staring Ammo "))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Rocket Staring Ammo "))
 	uint32 m_StartingRocketAmmo = 0;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Pistol Staring Ammo "))
+	uint32 m_StartingPistolAmmo = 0;
 
 	void InitCarriedAmmo();
 
