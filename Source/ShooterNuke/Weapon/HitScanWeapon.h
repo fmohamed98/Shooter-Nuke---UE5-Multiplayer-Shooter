@@ -22,4 +22,7 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Particles"))
 	UParticleSystem* m_ImpactParticles;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Beam Particles"))
+	UParticleSystem* m_BeamParticles;
 };
