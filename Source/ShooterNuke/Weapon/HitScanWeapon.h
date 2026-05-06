@@ -25,4 +25,13 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Beam Particles"))
 	UParticleSystem* m_BeamParticles;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Muzzle Flash"))
+	UParticleSystem* m_MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Fire Sound"))
+	USoundCue* m_FireSound;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Hit Sound"))
+	USoundCue* m_HitSound;
 };

@@ -204,6 +204,7 @@ void ANukeCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_RocketLauncher:
 		case EWeaponType::EWT_AssaultRifle:
 		case EWeaponType::EWT_Pistol:
+		case EWeaponType::EWT_SubMachineGun:
 			sectionName = FName("Rifle");
 			break;
 		}

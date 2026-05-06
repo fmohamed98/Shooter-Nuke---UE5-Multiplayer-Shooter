@@ -5,6 +5,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 void AHitScanWeapon::Fire(const FVector& hitTarget)
 {
@@ -41,6 +42,7 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
             }
 
             UGameplayStatics::SpawnEmitterAtLocation(world, m_ImpactParticles, hitResult.ImpactPoint, hitResult.ImpactNormal.Rotation());
+            UGameplayStatics::PlaySoundAtLocation(this, m_HitSound, hitResult.ImpactPoint);
         }
 
         UParticleSystemComponent* beam = UGameplayStatics::SpawnEmitterAtLocation(world, m_BeamParticles, socketTransform);
@@ -48,5 +50,9 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
         {
             beam->SetVectorParameter(FName("Target"), beamEnd);
         }
+
+        //if weapon firing animation is not there
+        UGameplayStatics::SpawnEmitterAtLocation(world, m_MuzzleFlash, socketTransform);
+        UGameplayStatics::PlaySoundAtLocation(this, m_FireSound, GetActorLocation());
     }
 }
