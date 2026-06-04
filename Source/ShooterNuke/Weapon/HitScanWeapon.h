@@ -18,14 +18,18 @@ public:
 
 protected:
 	FVector TraceEndWithScatter(const FVector traceStart, const FVector& hitTarget);
-
-private:
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
-	float m_Damage = 20.f;
+	void WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHit);
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Particles"))
 	UParticleSystem* m_ImpactParticles;
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Hit Sound"))
+	USoundCue* m_HitSound;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
+	float m_Damage = 20.f;
+
+private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Beam Particles"))
 	UParticleSystem* m_BeamParticles;
 
@@ -34,9 +38,6 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Fire Sound"))
 	USoundCue* m_FireSound;
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Hit Sound"))
-	USoundCue* m_HitSound;
 
 	//Trace end with scatter params
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Distance to Sphere"))

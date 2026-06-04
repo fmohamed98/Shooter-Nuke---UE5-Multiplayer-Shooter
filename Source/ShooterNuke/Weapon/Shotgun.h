@@ -18,6 +18,6 @@ public:
 	void Fire(const FVector& hitTarget) override;
 
 private:
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Number of Pellets"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Number of Pellets"), Category = "Weapon Scatter")
 	uint32 m_NumberOfPellets = 10;
 };
