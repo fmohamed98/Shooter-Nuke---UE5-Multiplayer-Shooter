@@ -14,8 +14,6 @@
 #include "Camera/CameraComponent.h"
 #include "Sound/SoundCue.h"
 
-constexpr float TRACE_LENGTH = 80000.f;
-
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
 {
@@ -80,7 +78,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (m_EquippedWeapon == nullptr)
 	{
-		// No weapon equipped — hide ammo on client
+		// No weapon equipped ï¿½ hide ammo on client
 		if (m_PlayerController == nullptr && m_Character != nullptr)
 		{
 			m_PlayerController = Cast<ANukePlayerController>(m_Character->GetController());
@@ -111,6 +109,12 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 	m_Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	m_Character->bUseControllerRotationYaw = true;
+
+	m_PlayerController = m_PlayerController == nullptr ? Cast<ANukePlayerController>(m_Character->Controller) : m_PlayerController;
+	if (m_PlayerController != nullptr)
+	{
+		m_PlayerController->SetHUDCarriedAmmo(m_CarriedAmmo);
+	}
 
 	if (m_EquippedWeapon->IsEmpty())
 	{
@@ -475,6 +479,7 @@ void UCombatComponent::InitCarriedAmmo()
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, m_StartingRocketAmmo); 
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, m_StartingPistolAmmo);
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_SubMachineGun, m_StartingSMGAmmo);
+	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, m_StartingShotgunAmmo);
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()

@@ -4,8 +4,10 @@
 #include "HitScanWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "WeaponTypes.h"
 
 void AHitScanWeapon::Fire(const FVector& hitTarget)
 {
@@ -55,4 +57,20 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
         UGameplayStatics::SpawnEmitterAtLocation(world, m_MuzzleFlash, socketTransform);
         UGameplayStatics::PlaySoundAtLocation(this, m_FireSound, GetActorLocation());
     }
+}
+
+FVector AHitScanWeapon::TraceEndWithScatter(const FVector traceStart, const FVector& hitTarget)
+{
+    FVector toTargetNormalized = (hitTarget - traceStart).GetSafeNormal();
+    FVector sphereCenter = traceStart + toTargetNormalized * m_DistanceToSphere;
+    FVector randVec = UKismetMathLibrary::RandomUnitVector()*FMath::FRandRange(0.f, m_SphereRadius);
+    FVector endLoc = sphereCenter + randVec;
+    FVector toEndLoc = endLoc - traceStart;
+    FVector traceEnd = traceStart + toEndLoc * TRACE_LENGTH / toEndLoc.Size();
+
+    DrawDebugSphere(GetWorld(), sphereCenter, m_SphereRadius,12, FColor::Red, true);
+    DrawDebugSphere(GetWorld(), endLoc, 4.f, 12, FColor::Orange, true);
+    DrawDebugLine(GetWorld(), traceStart, traceEnd, FColor::Cyan,true);
+
+    return traceEnd;
 }

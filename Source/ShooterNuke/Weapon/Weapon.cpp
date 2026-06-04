@@ -138,11 +138,19 @@ void AWeapon::OnRep_WeaponState()
 		m_WeaponMesh->SetSimulatePhysics(false);
 		m_WeaponMesh->SetEnableGravity(false);
 		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (m_WeaponType == EWeaponType::EWT_SubMachineGun)
+		{
+			m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			m_WeaponMesh->SetEnableGravity(true);
+		}
 		break;
 	case EWeaponState::EWS_Dropped:
 		m_WeaponMesh->SetSimulatePhysics(true);
 		m_WeaponMesh->SetEnableGravity(true);
 		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		break;
 	}
 }
@@ -196,6 +204,11 @@ void AWeapon::SetWeaponState(EWeaponState weaponState)
 		m_WeaponMesh->SetSimulatePhysics(false);
 		m_WeaponMesh->SetEnableGravity(false);
 		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (m_WeaponType == EWeaponType::EWT_SubMachineGun)
+		{
+			m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			m_WeaponMesh->SetEnableGravity(true);
+		}
 		break;
 	case EWeaponState::EWS_Dropped:
 		if (HasAuthority())
@@ -205,6 +218,9 @@ void AWeapon::SetWeaponState(EWeaponState weaponState)
 		m_WeaponMesh->SetSimulatePhysics(true);
 		m_WeaponMesh->SetEnableGravity(true);
 		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		break;
 	}
 }
