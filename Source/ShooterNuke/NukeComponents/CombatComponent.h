@@ -122,6 +122,9 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Shotgun Staring Ammo "))
 	uint32 m_StartingShotgunAmmo = 0;
+	
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Sniper Staring Ammo "))
+	uint32 m_StartingSniperAmmo = 10;
 
 	void InitCarriedAmmo();
 
