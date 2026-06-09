@@ -122,6 +122,9 @@ public:
 	UPROPERTY(Replicated)
 	bool m_DisableGameplay = false;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool showScope);
+
 private:
 	float m_InterpAimOffsetYaw = 0.f;
 	float m_AimOffsetYaw = 0.f;

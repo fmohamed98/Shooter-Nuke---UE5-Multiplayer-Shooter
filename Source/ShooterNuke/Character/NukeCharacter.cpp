@@ -305,6 +305,15 @@ void ANukeCharacter::MultiCastEliminate_Implementation()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, m_ElimBotSound, GetActorLocation(), GetActorRotation());
 	}
+
+	bool hideSniperScope = IsLocallyControlled() && 
+	m_CombatComponent && 
+	m_CombatComponent->m_EquippedWeapon &&
+	m_CombatComponent->m_EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	if (hideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
+	}
 }
 
 void ANukeCharacter::ElimTimerFinished()

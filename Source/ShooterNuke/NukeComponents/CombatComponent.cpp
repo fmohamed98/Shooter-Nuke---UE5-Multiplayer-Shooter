@@ -406,12 +406,19 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 
 void UCombatComponent::SetAiming(const bool isAiming)
 {
+	if (m_Character == nullptr || m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
 	m_IsAiming = isAiming;
 	ServerSetAiming(m_IsAiming);
 
-	if (m_Character != nullptr)
+	m_Character->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimWalkSpeed : m_BaseWalkSpeed;
+
+	if (m_Character->IsLocallyControlled() && m_EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
 	{
-		m_Character->GetCharacterMovement()->MaxWalkSpeed = isAiming ? m_AimWalkSpeed : m_BaseWalkSpeed;
+		m_Character->ShowSniperScopeWidget(isAiming);
 	}
 }
 
