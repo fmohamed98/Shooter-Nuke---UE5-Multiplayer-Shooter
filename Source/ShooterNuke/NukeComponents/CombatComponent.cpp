@@ -348,16 +348,18 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 		return;
 	}
 
-	if (m_EquippedWeapon == nullptr)
-	{
-		return;
-	}
-
 	m_PlayerController = m_PlayerController == nullptr ? Cast<ANukePlayerController>(m_Character->Controller) : m_PlayerController;
 	m_HUD = m_HUD == nullptr ? Cast<ANukeHUD>(m_PlayerController->GetHUD()) : m_HUD;
 
 	if (m_HUD == nullptr)
 	{
+		return;
+	}
+
+	if (m_EquippedWeapon == nullptr)
+	{
+		m_HudPackage = FHUDPackage();
+		m_HUD->SetHUDPackage(m_HudPackage);
 		return;
 	}
 
@@ -488,6 +490,7 @@ void UCombatComponent::InitCarriedAmmo()
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_SubMachineGun, m_StartingSMGAmmo);
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, m_StartingShotgunAmmo);
 	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, m_StartingSniperAmmo);
+	m_CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher, m_StartingGrenadeAmmo);
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()

@@ -9,6 +9,8 @@
 class UBoxComponent;
 class UProjectileMovementComponent;
 class USoundCue;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class SHOOTERNUKE_API AProjectile : public AActor
@@ -32,14 +34,35 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Sound"))
 	USoundCue* m_ImpactSound;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
-	float m_Damage = 5.f;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Trail System"))
+	UNiagaraSystem* m_TrailSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* m_TrailSystemComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Collision Box"))
 	UBoxComponent* m_CollisionBox;
 
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Movement Component"))
 	UProjectileMovementComponent* m_ProjectileMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Mesh"))
+	UStaticMeshComponent* m_ProjectileMesh;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
+	float m_Damage = 5.f;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage Inner Radius"))
+	float m_DamageInnerRadius = 200.f;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage Outer Radius"))
+	float m_DamageOuterRadius = 500.f;
+
+	void SpawnTrailSystem();
+
+	void StartDestroyTimer();
+	void DestroyTimerFinished();
+	void ExplodeDamage();
 
 public:	
 	// Called every frame
@@ -50,4 +73,10 @@ public:
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Tracer"))
 	UParticleSystem* m_Tracer;
+
+	FTimerHandle m_DestroyTimer;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Destroy Time"))
+	float m_DestroyTime = 3.f;
+
 };

@@ -3,20 +3,18 @@
 
 #include "ProjectileRocket.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraComponent.h"
-#include "NiagaraSystemInstance.h"
 #include "Sound/SoundCue.h"
 #include "Components/BoxComponent.h"
-#include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
 #include "RocketMovementComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystemInstance.h"
 
 AProjectileRocket::AProjectileRocket()
 {
-	m_RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
-	m_RocketMesh->SetupAttachment(RootComponent);
-	m_RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	m_ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
+	m_ProjectileMesh->SetupAttachment(RootComponent);
+	m_ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	m_RocketMovementComponent = CreateDefaultSubobject<URocketMovementComponent>(TEXT("RocketMovementComponent"));
 	m_RocketMovementComponent->bRotationFollowsVelocity = true;
@@ -41,7 +39,7 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, 
 		}
 	}
 
-	GetWorldTimerManager().SetTimer(m_DestroyTimer, this, &AProjectileRocket::DestroyTimerFinished, m_DestroyTime);
+	StartDestroyTimer();
 
 	if (m_ImpactParticles != nullptr)
 	{
@@ -53,9 +51,9 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, 
 		UGameplayStatics::PlaySoundAtLocation(this, m_ImpactSound, GetActorLocation());
 	}
 
-	if (m_RocketMesh != nullptr)
+	if (m_ProjectileMesh != nullptr)
 	{
-		m_RocketMesh->SetVisibility(false);
+		m_ProjectileMesh->SetVisibility(false);
 	}
 
 	if (m_CollisionBox != nullptr)
@@ -85,10 +83,7 @@ void AProjectileRocket::BeginPlay()
 		m_CollisionBox->OnComponentHit.AddDynamic(this, &AProjectileRocket::OnHit);
 	}
 
-	if (m_TrailSystem != nullptr)
-	{
-		m_TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(m_TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
-	}
+	SpawnTrailSystem();
 
 	if (m_SoundLoop != nullptr && m_SoundLoopAttenuation != nullptr)
 	{
@@ -98,9 +93,4 @@ void AProjectileRocket::BeginPlay()
 
 void AProjectileRocket::Destroyed()
 {
-}
-
-void AProjectileRocket::DestroyTimerFinished()
-{
-	Destroy();
 }

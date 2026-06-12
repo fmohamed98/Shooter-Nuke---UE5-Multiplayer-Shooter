@@ -6,8 +6,6 @@
 #include "Projectile.h"
 #include "ProjectileRocket.generated.h"
 
-class UNiagaraSystem;
-class UNiagaraComponent;
 class URocketMovementComponent;
 
 UCLASS()
@@ -23,14 +21,10 @@ protected:
 	void BeginPlay() override;
 	void Destroyed() override;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Trail System"))
-	UNiagaraSystem* m_TrailSystem;
-
-	UNiagaraComponent* m_TrailSystemComponent = nullptr;
-
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Sound Loop"))
 	USoundCue* m_SoundLoop;
 
+	UPROPERTY()
 	UAudioComponent* m_SoundLoopComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Sound Loop Attenuation"))
@@ -38,15 +32,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Rocket Movement Component"))
 	URocketMovementComponent* m_RocketMovementComponent;
-
-private:
-	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Trail System"))
-	UStaticMeshComponent* m_RocketMesh;
-
-	FTimerHandle m_DestroyTimer;
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Destroy Time"))
-	float m_DestroyTime = 3.f;
-
-	void DestroyTimerFinished();
 };

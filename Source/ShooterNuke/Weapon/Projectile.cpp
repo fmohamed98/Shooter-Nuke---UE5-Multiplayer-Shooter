@@ -7,6 +7,7 @@
 #include "Sound/SoundCue.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/ShooterNuke.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -48,6 +49,14 @@ void AProjectile::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimi
 	Destroy();
 }
 
+void AProjectile::SpawnTrailSystem()
+{
+	if (m_TrailSystem != nullptr)
+	{
+		m_TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(m_TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
+	}
+}
+
 // Called every frame
 void AProjectile::Tick(float DeltaTime)
 {
@@ -67,6 +76,29 @@ void AProjectile::Destroyed()
 	if (m_ImpactSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, m_ImpactSound, GetActorLocation());
+	}
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	GetWorldTimerManager().SetTimer(m_DestroyTimer, this, &AProjectile::DestroyTimerFinished, m_DestroyTime);
+}
+
+void AProjectile::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+void AProjectile::ExplodeDamage()
+{
+	APawn* firingPawn = GetInstigator();
+	if (firingPawn != nullptr && HasAuthority())
+	{
+		AController* firingController = firingPawn->GetController();
+		if (firingController != nullptr)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(this, m_Damage, 10.f, GetActorLocation(), 200.f, 500.f, 1.f, UDamageType::StaticClass(), TArray<AActor*>(), this, firingController);
+		}
 	}
 }
 
