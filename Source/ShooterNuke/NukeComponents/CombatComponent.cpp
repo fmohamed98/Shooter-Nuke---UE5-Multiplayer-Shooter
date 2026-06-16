@@ -188,6 +188,16 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& trac
 
 void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& traceHitTarget)
 {
+	if (m_Character != nullptr && m_Character->IsLocallyControlled() && !m_Character->HasAuthority())
+	{
+		return;
+	}
+	
+	LocalFire(traceHitTarget);
+}
+
+void UCombatComponent::LocalFire(const FVector_NetQuantize& hitTarget)
+{
 	if (m_EquippedWeapon == nullptr)
 	{
 		return;
@@ -196,9 +206,10 @@ void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& t
 	if (m_Character != nullptr && m_CombatState == ECombatState::ECS_Unoccupied)
 	{
 		m_Character->PlayFireMontage();
-		m_EquippedWeapon->Fire(traceHitTarget);
+		m_EquippedWeapon->Fire(hitTarget);
 	}
 }
+
 
 void UCombatComponent::Reload()
 {
@@ -457,6 +468,7 @@ void UCombatComponent::Fire()
 	{
 		m_CanFire = false;
         ServerFire(m_HitTarget);
+		LocalFire(m_HitTarget);
         m_CrossHairShootFactor = .75f;
 
         StartFireTimer();

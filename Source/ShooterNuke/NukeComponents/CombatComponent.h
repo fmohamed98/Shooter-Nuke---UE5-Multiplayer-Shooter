@@ -73,6 +73,7 @@ public:
 
 	bool CanFire();
 	void Fire();
+	void LocalFire(const FVector_NetQuantize& hitTarget);
 	void EquipWeapon(AWeapon* weapon);
 	void Reload();
 	void HandleReload();
