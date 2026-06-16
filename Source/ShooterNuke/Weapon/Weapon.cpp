@@ -42,13 +42,10 @@ void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HasAuthority())
-	{
-		m_AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		m_AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-		m_AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
-	}
+    m_AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+    m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    m_AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+    m_AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 
 	m_Ammo = m_MagCapacity;
 }
