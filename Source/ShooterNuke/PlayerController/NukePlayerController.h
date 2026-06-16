@@ -47,15 +47,31 @@ private:
 
 	uint32 m_CountDownSecs = 0;
 
+	float m_HighPingRunningTime = 0.f;
+	float m_PingAnimationRunningTime = 0.f;
+	
+	UPROPERTY(EditAnywhere, Category = Ping, meta = (DisplayName = "High Ping Duration"))
+	float m_HighPingDuration = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = Ping, meta = (DisplayName = "High Ping Threshold"))
+	float m_HighPingThreshold = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = Ping, meta = (DisplayName = "Check Ping Frequency"))
+	float m_CheckPingFrequency = 20.f;
+
 	bool IsCharacterOverlayValid();
 	bool IsAnnouncementValid();
 	void CheckTimeSync(float deltaTime);
+	void CheckPing(float deltaTime);
 
 	UFUNCTION(Server, Reliable)
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
 	void ClientJoinMidGame(FName matchState, float warmupTime, float matchTime, float cooldownTime, float startingTime);
+
+	void HighPingWarning();
+	void StopHighPingWarning();
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName m_MatchState;

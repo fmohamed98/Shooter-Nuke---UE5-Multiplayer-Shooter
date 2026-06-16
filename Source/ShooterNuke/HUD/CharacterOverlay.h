@@ -8,6 +8,7 @@
 
 class  UProgressBar;
 class UTextBlock;
+class UImage;
 /**
  * 
  */
@@ -39,4 +40,10 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* m_MatchCountDownText;
+
+	UPROPERTY(meta=(BindWidget))
+	UImage* m_HighPingImage;
+
+	UPROPERTY(meta=(BindWidgetAnim), Transient)
+	UWidgetAnimation* m_HighPingAnimation;
 };

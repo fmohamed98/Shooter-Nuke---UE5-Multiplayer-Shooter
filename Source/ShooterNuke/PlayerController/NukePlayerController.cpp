@@ -7,6 +7,7 @@
 #include "ShooterNuke/HUD/Announcement.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/GameMode/NukeGameMode.h"
 #include "Net/UnrealNetwork.h"
@@ -30,6 +31,7 @@ void ANukePlayerController::Tick(float deltaTime)
 
     SetHUDTime();
     CheckTimeSync(deltaTime);
+    CheckPing(deltaTime);
 }
 
 void ANukePlayerController::CheckTimeSync(float deltaTime)
@@ -39,6 +41,38 @@ void ANukePlayerController::CheckTimeSync(float deltaTime)
     {
         ServerRequestServerTime(GetWorld()->GetTimeSeconds());
         m_TimeSyncRunningTime = 0.f;
+    }
+}
+
+void ANukePlayerController::CheckPing(float deltaTime)
+{
+    m_HighPingRunningTime += deltaTime;
+    if (m_HighPingRunningTime >= m_CheckPingFrequency)
+    {
+        if (PlayerState == nullptr)
+        {
+            PlayerState = GetPlayerState<APlayerState>();
+        }
+
+        if (PlayerState != nullptr && PlayerState->GetPingInMilliseconds() > m_HighPingThreshold)
+        {
+            HighPingWarning();
+            m_PingAnimationRunningTime = 0.f;
+        }
+        m_HighPingRunningTime = 0.f;
+    }
+
+    if (IsCharacterOverlayValid())
+    {
+        UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+        if (characterOverlay->m_HighPingAnimation && characterOverlay->IsAnimationPlaying(characterOverlay->m_HighPingAnimation))
+        {
+            m_PingAnimationRunningTime += deltaTime;
+            if (m_PingAnimationRunningTime >= m_HighPingDuration)
+            {
+                StopHighPingWarning();
+            }
+        }
     }
 }
 
@@ -373,6 +407,39 @@ void ANukePlayerController::OnMatchStateSet(FName& matchState)
     m_MatchState = matchState;
 
     HandleMatchState();
+}
+
+void ANukePlayerController::HighPingWarning()
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_HighPingImage && characterOverlay->m_HighPingAnimation)
+    {
+        characterOverlay->m_HighPingImage->SetOpacity(1.f);
+        characterOverlay->PlayAnimation(characterOverlay->m_HighPingAnimation, 0.f, 5);
+    }
+}
+
+void ANukePlayerController::StopHighPingWarning()
+{
+    if (!IsCharacterOverlayValid())
+    {
+        return;
+    }
+
+    UCharacterOverlay* characterOverlay = m_NukeHUD->m_CharacterOverlay;
+    if (characterOverlay->m_HighPingImage && characterOverlay->m_HighPingAnimation)
+    {
+        characterOverlay->m_HighPingImage->SetOpacity(0.f);
+        if (characterOverlay->IsAnimationPlaying(characterOverlay->m_HighPingAnimation))
+        {
+            characterOverlay->StopAnimation(characterOverlay->m_HighPingAnimation);
+        }
+    }
 }
 
 void ANukePlayerController::OnRep_MatchState()
