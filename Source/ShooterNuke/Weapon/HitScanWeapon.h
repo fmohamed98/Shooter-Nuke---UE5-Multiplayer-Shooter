@@ -15,9 +15,12 @@ class SHOOTERNUKE_API AHitScanWeapon : public AWeapon
 
 public:
 	void Fire(const FVector& hitTarget) override;
+	FVector TraceEndWithScatter(const FVector& hitTarget);
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Use Scatter"))
+	bool m_UseScatter = false;
 
 protected:
-	FVector TraceEndWithScatter(const FVector traceStart, const FVector& hitTarget);
 	void WeaponTraceHit(const FVector& traceStart, const FVector& hitTarget, FHitResult& outHit);
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Impact Particles"))
@@ -45,7 +48,4 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Sphere Radius"))
 	float m_SphereRadius = 75.f;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Use Scatter"))
-	bool m_UseScatter = false;
 };

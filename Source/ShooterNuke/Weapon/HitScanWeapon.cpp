@@ -45,8 +45,17 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
     UGameplayStatics::PlaySoundAtLocation(this, m_FireSound, GetActorLocation());
 }
 
-FVector AHitScanWeapon::TraceEndWithScatter(const FVector traceStart, const FVector& hitTarget)
+FVector AHitScanWeapon::TraceEndWithScatter(const FVector& hitTarget)
 {
+    const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
+    if (muzzleFlashSocket == nullptr)
+    {
+        return FVector();
+    }
+
+    FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+    FVector traceStart = socketTransform.GetLocation();
+
     FVector toTargetNormalized = (hitTarget - traceStart).GetSafeNormal();
     FVector sphereCenter = traceStart + toTargetNormalized * m_DistanceToSphere;
     FVector randVec = UKismetMathLibrary::RandomUnitVector()*FMath::FRandRange(0.f, m_SphereRadius);
@@ -69,7 +78,7 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& traceStart, const FVector& hi
         return;
     }
 
-    FVector end = m_UseScatter ? TraceEndWithScatter(traceStart, hitTarget) : traceStart + (hitTarget - traceStart) * 1.25f;
+    FVector end = traceStart + (hitTarget - traceStart) * 1.25f;
 
     world->LineTraceSingleByChannel(outHit, traceStart, end, ECollisionChannel::ECC_Visibility);
     FVector beamEnd = end;

@@ -26,6 +26,16 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
+UENUM(BlueprintType)
+enum class EFireType : uint8
+{
+	EFT_HitScan UMETA(DisplayName = "Hit Scan Weapon"),
+	EFT_Projectile UMETA(DisplayName = "Projectile Weapon"),
+	EFT_Shotgun UMETA(DisplayName = "Shotgun Weapon"),
+	
+	EFT_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 UCLASS()
 class SHOOTERNUKE_API AWeapon : public AActor
 {
@@ -96,6 +106,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Weapon Type"))
 	EWeaponType m_WeaponType;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Fire Type"))
+	EFireType m_FireType;
+
 	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
 	uint32 m_Ammo;
 
@@ -141,6 +154,7 @@ public:
 	FORCEINLINE uint32 GetAmmoCount() const { return m_Ammo; }
 	FORCEINLINE uint32 GetMagCapacity() const { return m_MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return m_WeaponType; }
+	FORCEINLINE EFireType GetFireType() const { return m_FireType; }
 	FORCEINLINE bool IsEmpty() const { return m_Ammo == 0; }
 
 private:

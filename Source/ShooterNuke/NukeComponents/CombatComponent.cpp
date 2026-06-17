@@ -3,6 +3,7 @@
 
 #include "CombatComponent.h"
 #include "ShooterNuke/Weapon/Weapon.h"
+#include "ShooterNuke/Weapon/HitScanWeapon.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -464,15 +465,51 @@ bool UCombatComponent::CanFire()
 
 void UCombatComponent::Fire()
 {
+	if (m_EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
 	if (CanFire())
 	{
 		m_CanFire = false;
-        ServerFire(m_HitTarget);
-		LocalFire(m_HitTarget);
+		
+		switch (m_EquippedWeapon->GetFireType())
+		{
+		case EFireType::EFT_Projectile:
+			FireProjectileWeapon();
+			break;
+		case EFireType::EFT_HitScan:
+			FireHitScanWeapon();
+			break;
+		case EFireType::EFT_Shotgun:
+			FireShotgun();
+			break;
+		}
         m_CrossHairShootFactor = .75f;
 
         StartFireTimer();
 	}
+}
+
+void UCombatComponent::FireProjectileWeapon()
+{
+	LocalFire(m_HitTarget);
+	ServerFire(m_HitTarget);
+}
+
+void UCombatComponent::FireHitScanWeapon()
+{
+	if (AHitScanWeapon* weapon = Cast<AHitScanWeapon>(m_EquippedWeapon))
+	{
+		m_HitTarget = weapon->m_UseScatter ? weapon->TraceEndWithScatter(m_HitTarget) : m_HitTarget;
+		LocalFire(m_HitTarget);
+		ServerFire(m_HitTarget);
+	}
+}
+
+void UCombatComponent::FireShotgun()
+{
 }
 
 void UCombatComponent::FireTimerFinished()
@@ -488,7 +525,7 @@ void UCombatComponent::FireTimerFinished()
 		Fire();
 	}
 
-	if (m_EquippedWeapon->IsEmpty())
+	if (m_EquippedWeapon != nullptr && m_EquippedWeapon->IsEmpty())
 	{
 		Reload();
 	}

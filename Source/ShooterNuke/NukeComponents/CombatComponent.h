@@ -73,6 +73,10 @@ public:
 
 	bool CanFire();
 	void Fire();
+	void FireProjectileWeapon();
+	void FireHitScanWeapon();
+	void FireShotgun();
+
 	void LocalFire(const FVector_NetQuantize& hitTarget);
 	void EquipWeapon(AWeapon* weapon);
 	void Reload();
