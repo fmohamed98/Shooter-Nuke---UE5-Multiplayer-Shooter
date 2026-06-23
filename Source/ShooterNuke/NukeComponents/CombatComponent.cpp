@@ -4,6 +4,7 @@
 #include "CombatComponent.h"
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/Weapon/HitScanWeapon.h"
+#include "ShooterNuke/Weapon/Shotgun.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -211,6 +212,17 @@ void UCombatComponent::LocalFire(const FVector_NetQuantize& hitTarget)
 	}
 }
 
+void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& traceHitTargets)
+{
+	if (AShotgun* shotgun = Cast<AShotgun>(m_EquippedWeapon))
+	{
+		if (m_Character != nullptr && m_CombatState == ECombatState::ECS_Unoccupied)
+		{
+			m_Character->PlayFireMontage();
+			shotgun->FireShotgun(traceHitTargets);
+		}
+	}
+}
 
 void UCombatComponent::Reload()
 {
@@ -308,6 +320,21 @@ void UCombatComponent::UpdateAmmoValues()
 	}
 
 	m_EquippedWeapon->AddAmmo(reloadAmount);
+}
+
+void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& traceHitTargets)
+{
+	MultiCastShotgunFire(traceHitTargets);
+}
+
+void UCombatComponent::MultiCastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& traceHitTargets)
+{
+	if (m_Character != nullptr && m_Character->IsLocallyControlled() && !m_Character->HasAuthority())
+	{
+		return;
+	}
+
+	ShotgunLocalFire(traceHitTargets);
 }
 
 void UCombatComponent::TraceUnderCrossHairs(FHitResult& traceHitResult)
@@ -494,7 +521,10 @@ void UCombatComponent::Fire()
 
 void UCombatComponent::FireProjectileWeapon()
 {
-	LocalFire(m_HitTarget);
+	if (m_Character != nullptr && !m_Character->HasAuthority())
+	{
+		LocalFire(m_HitTarget);
+	}
 	ServerFire(m_HitTarget);
 }
 
@@ -503,13 +533,31 @@ void UCombatComponent::FireHitScanWeapon()
 	if (AHitScanWeapon* weapon = Cast<AHitScanWeapon>(m_EquippedWeapon))
 	{
 		m_HitTarget = weapon->m_UseScatter ? weapon->TraceEndWithScatter(m_HitTarget) : m_HitTarget;
-		LocalFire(m_HitTarget);
+		if (m_Character != nullptr && !m_Character->HasAuthority())
+		{
+			LocalFire(m_HitTarget);
+		}
 		ServerFire(m_HitTarget);
 	}
 }
 
 void UCombatComponent::FireShotgun()
 {
+	AShotgun* shotgun = Cast<AShotgun>(m_EquippedWeapon);
+	if(shotgun == nullptr)
+	{
+		return;
+	}
+
+	TArray<FVector_NetQuantize> hitTargets;
+	hitTargets.Reserve(shotgun->m_NumberOfPellets);
+	
+	shotgun->ShotgunTraceEndWithScatter(m_HitTarget, hitTargets);
+	if (m_Character != nullptr && !m_Character->HasAuthority())
+	{
+		ShotgunLocalFire(hitTargets);
+	}
+	ServerShotgunFire(hitTargets);
 }
 
 void UCombatComponent::FireTimerFinished()

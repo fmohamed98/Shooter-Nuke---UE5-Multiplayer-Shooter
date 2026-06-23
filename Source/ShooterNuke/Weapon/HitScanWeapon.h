@@ -32,6 +32,13 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
 	float m_Damage = 20.f;
 
+	//Trace end with scatter params
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Distance to Sphere"))
+	float m_DistanceToSphere = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Sphere Radius"))
+	float m_SphereRadius = 75.f;
+
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Beam Particles"))
 	UParticleSystem* m_BeamParticles;
@@ -41,11 +48,4 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Fire Sound"))
 	USoundCue* m_FireSound;
-
-	//Trace end with scatter params
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Distance to Sphere"))
-	float m_DistanceToSphere = 800.f;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter", meta = (DisplayName = "Sphere Radius"))
-	float m_SphereRadius = 75.f;
 };

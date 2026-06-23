@@ -63,6 +63,12 @@ private:
 	void MultiCastFire(const FVector_NetQuantize& traceHitTarget);
 
 	UFUNCTION(Server, Reliable)
+	void ServerShotgunFire(const TArray<FVector_NetQuantize>& traceHitTargets);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastShotgunFire(const TArray<FVector_NetQuantize>& traceHitTargets);
+
+	UFUNCTION(Server, Reliable)
 	void ServerReload();
 
 	void TraceUnderCrossHairs(FHitResult& hitResult);
@@ -78,6 +84,7 @@ public:
 	void FireShotgun();
 
 	void LocalFire(const FVector_NetQuantize& hitTarget);
+	void ShotgunLocalFire(const TArray<FVector_NetQuantize>& traceHitTargets);
 	void EquipWeapon(AWeapon* weapon);
 	void Reload();
 	void HandleReload();

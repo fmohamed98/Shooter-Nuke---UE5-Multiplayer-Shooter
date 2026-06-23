@@ -15,9 +15,9 @@ class SHOOTERNUKE_API AShotgun : public AHitScanWeapon
 	GENERATED_BODY()
 
 public:
-	void Fire(const FVector& hitTarget) override;
+	void FireShotgun(const TArray<FVector_NetQuantize>& hitTargets);
+	void ShotgunTraceEndWithScatter(const FVector& hitTarget, TArray<FVector_NetQuantize>& hitTargets);
 
-private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Number of Pellets"), Category = "Weapon Scatter")
 	uint32 m_NumberOfPellets = 10;
 };
