@@ -109,11 +109,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Fire Type"))
 	EFireType m_FireType;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
+	//number of unprocessed server requests for ammo
+	//incremented in SpendRound and decremented in ClientUpdateAmmo
 	uint32 m_Ammo;
 
-	UFUNCTION()
-	void OnRep_Ammo();
+	uint32 m_Sequence = 0;
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmo(uint32 serverAmmo);
+
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(uint32 serverAmmo);
 
 	void SpendRound();
 

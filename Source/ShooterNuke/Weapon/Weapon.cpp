@@ -77,7 +77,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
-	DOREPLIFETIME(AWeapon, m_Ammo);
+
 }
 
 void AWeapon::OnRep_Owner()
@@ -152,9 +152,23 @@ void AWeapon::OnRep_WeaponState()
 	}
 }
 
-void AWeapon::OnRep_Ammo()
+void AWeapon::AddAmmo(uint32 ammoToAdd)
 {
+	m_Ammo = FMath::Clamp(m_Ammo + ammoToAdd, 0, m_MagCapacity);
 	SetHUDWeaponAmmo();
+	ClientAddAmmo(ammoToAdd);
+}
+
+void AWeapon::ClientUpdateAmmo_Implementation(uint32 serverAmmo)
+{
+	m_Ammo = serverAmmo;
+	m_Ammo-= --m_Sequence;
+	SetHUDWeaponAmmo();
+}
+
+void AWeapon::ClientAddAmmo_Implementation(uint32 ammoToAdd)
+{
+	m_Ammo = FMath::Clamp(m_Ammo + ammoToAdd, 0, m_MagCapacity);
 }
 
 void AWeapon::SpendRound()
@@ -166,6 +180,15 @@ void AWeapon::SpendRound()
 
 	m_Ammo--;
 	SetHUDWeaponAmmo();
+
+	if (HasAuthority())
+	{
+		ClientUpdateAmmo(m_Ammo);
+	}
+	else
+	{
+		m_Sequence++;
+	}
 }
 
 void AWeapon::SetHUDWeaponAmmo()
@@ -236,10 +259,4 @@ void AWeapon::Drop()
 	SetOwner(nullptr);
 	m_OwningCharacterController = nullptr;
 	m_OwningCharacter = nullptr;
-}
-
-void AWeapon::AddAmmo(uint32 ammoToAdd)
-{
-	m_Ammo = FMath::Clamp(m_Ammo + ammoToAdd, 0, m_MagCapacity);
-	SetHUDWeaponAmmo();
 }
