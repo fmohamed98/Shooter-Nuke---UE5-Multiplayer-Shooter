@@ -124,6 +124,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::OnRep_Aiming()
+{
+	if (m_Character != nullptr && m_Character->IsLocallyControlled())
+	{
+		m_IsAiming = m_IsAimButtonPressed;
+	}
+}
+
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
@@ -460,6 +468,11 @@ void UCombatComponent::SetAiming(const bool isAiming)
 	if (m_Character->IsLocallyControlled() && m_EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
 	{
 		m_Character->ShowSniperScopeWidget(isAiming);
+	}
+
+	if (m_Character->IsLocallyControlled())
+	{
+		m_IsAimButtonPressed = isAiming;
 	}
 }
 

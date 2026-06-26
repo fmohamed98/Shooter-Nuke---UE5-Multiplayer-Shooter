@@ -50,8 +50,13 @@ private:
 
 	bool m_IsFireButtonPressed = false;
 
-	UPROPERTY(Replicated)
-	bool m_IsAiming;
+	UPROPERTY(ReplicatedUsing = OnRep_Aiming)
+	bool m_IsAiming = false;
+
+	bool m_IsAimButtonPressed = false;
+
+	UFUNCTION()
+	void OnRep_Aiming();
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(const bool isAiming);
