@@ -161,6 +161,11 @@ void AWeapon::AddAmmo(uint32 ammoToAdd)
 
 void AWeapon::ClientUpdateAmmo_Implementation(uint32 serverAmmo)
 {
+	if (HasAuthority())
+	{
+		return;
+	}
+
 	m_Ammo = serverAmmo;
 	m_Ammo-= --m_Sequence;
 	SetHUDWeaponAmmo();
@@ -169,6 +174,7 @@ void AWeapon::ClientUpdateAmmo_Implementation(uint32 serverAmmo)
 void AWeapon::ClientAddAmmo_Implementation(uint32 ammoToAdd)
 {
 	m_Ammo = FMath::Clamp(m_Ammo + ammoToAdd, 0, m_MagCapacity);
+	SetHUDWeaponAmmo();
 }
 
 void AWeapon::SpendRound()

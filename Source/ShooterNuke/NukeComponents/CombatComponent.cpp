@@ -237,6 +237,7 @@ void UCombatComponent::Reload()
 	if (m_CarriedAmmo > 0 && m_CombatState != ECombatState::ECS_Reloading)
 	{
 		ServerReload();
+		HandleReload();
 	}
 }
 
@@ -286,7 +287,10 @@ void UCombatComponent::FinishReload()
 void UCombatComponent::ServerReload_Implementation()
 {
 	m_CombatState = ECombatState::ECS_Reloading;
-	HandleReload();
+	if (m_Character != nullptr && !m_Character->IsLocallyControlled())
+	{
+		HandleReload();
+	}
 }
 
 void UCombatComponent::OnRep_CombatState()
@@ -300,7 +304,10 @@ void UCombatComponent::OnRep_CombatState()
 		}
 		break;
 	case ECombatState::ECS_Reloading:
-		HandleReload();
+		if (m_Character != nullptr && !m_Character->IsLocallyControlled())
+		{
+			HandleReload();
+		}
 		break;
 	default:
 		break;
