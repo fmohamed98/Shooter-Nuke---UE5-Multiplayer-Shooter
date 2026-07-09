@@ -8,7 +8,9 @@
 #include "Net/UnrealNetwork.h"
 #include "ShooterNuke/Weapon/Weapon.h"
 #include "ShooterNuke/NukeComponents/CombatComponent.h"
+#include "ShooterNuke/NukeComponents/LagCompensationComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterNuke/ShooterNuke.h"
@@ -40,12 +42,88 @@ ANukeCharacter::ANukeCharacter()
 	m_CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	m_CombatComponent->SetIsReplicated(true);
 
+	m_LagCompensationComponent = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensationComponent"));
+
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	m_DissolveTimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
+
+	//Hit boxes for server-side rewind
+	m_HeadBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Head"));
+	m_HeadBox->SetupAttachment(GetMesh(), FName("Head"));
+	m_HeadBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_Spine02 = CreateDefaultSubobject<UBoxComponent>(TEXT("Spine_02"));
+	m_Spine02->SetupAttachment(GetMesh(), FName("Spine_02"));
+	m_Spine02->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_Spine03 = CreateDefaultSubobject<UBoxComponent>(TEXT("Spine_03"));
+	m_Spine03->SetupAttachment(GetMesh(), FName("Spine_03"));
+	m_Spine03->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_Pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("Pelvis"));
+	m_Pelvis->SetupAttachment(GetMesh(), FName("Pelvis"));
+	m_Pelvis->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_UpperarmL = CreateDefaultSubobject<UBoxComponent>(TEXT("Upperarm_l"));
+	m_UpperarmL->SetupAttachment(GetMesh(), FName("Upperarm_l"));
+	m_UpperarmL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_UpperarmR = CreateDefaultSubobject<UBoxComponent>(TEXT("Upperarm_r"));
+	m_UpperarmR->SetupAttachment(GetMesh(), FName("Upperarm_r"));
+	m_UpperarmR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_LowerarmL = CreateDefaultSubobject<UBoxComponent>(TEXT("Lowerarm_l"));
+	m_LowerarmL->SetupAttachment(GetMesh(), FName("Lowerarm_l"));
+	m_LowerarmL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_LowerarmR = CreateDefaultSubobject<UBoxComponent>(TEXT("Lowerarm_r"));
+	m_LowerarmR->SetupAttachment(GetMesh(), FName("Lowerarm_r"));
+	m_LowerarmR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_HandL = CreateDefaultSubobject<UBoxComponent>(TEXT("Hand_l"));
+	m_HandL->SetupAttachment(GetMesh(), FName("Hand_l"));
+	m_HandL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_HandR = CreateDefaultSubobject<UBoxComponent>(TEXT("Hand_r"));
+	m_HandR->SetupAttachment(GetMesh(), FName("Hand_r"));
+	m_HandR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_Backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("Backpack"));
+	m_Backpack->SetupAttachment(GetMesh(), FName("Backpack"));
+	m_Backpack->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_Blanket = CreateDefaultSubobject<UBoxComponent>(TEXT("Blanket"));
+	m_Blanket->SetupAttachment(GetMesh(), FName("Backpack"));
+	m_Blanket->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_ThighL = CreateDefaultSubobject<UBoxComponent>(TEXT("Thigh_l"));
+	m_ThighL->SetupAttachment(GetMesh(), FName("Thigh_l"));
+	m_ThighL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_ThighR = CreateDefaultSubobject<UBoxComponent>(TEXT("Thigh_r"));
+	m_ThighR->SetupAttachment(GetMesh(), FName("Thigh_r"));
+	m_ThighR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_CalfL = CreateDefaultSubobject<UBoxComponent>(TEXT("Calf_l"));
+	m_CalfL->SetupAttachment(GetMesh(), FName("Calf_l"));
+	m_CalfL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_CalfR = CreateDefaultSubobject<UBoxComponent>(TEXT("Calf_r"));
+	m_CalfR->SetupAttachment(GetMesh(), FName("Calf_r"));
+	m_CalfR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_FootL = CreateDefaultSubobject<UBoxComponent>(TEXT("Foot_l"));
+	m_FootL->SetupAttachment(GetMesh(), FName("Foot_l"));
+	m_FootL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	m_FootR = CreateDefaultSubobject<UBoxComponent>(TEXT("Foot_r"));
+	m_FootR->SetupAttachment(GetMesh(), FName("Foot_r"));
+	m_FootR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 }
 
 // Called when the game starts or when spawned
@@ -103,9 +181,16 @@ void ANukeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void ANukeCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
 	if (m_CombatComponent != nullptr)
 	{
 		m_CombatComponent->m_Character = this;
+	}
+
+	if (m_LagCompensationComponent != nullptr)
+	{
+		m_LagCompensationComponent->m_Character = this;
+		m_LagCompensationComponent->m_Controller = Cast<ANukePlayerController>(Controller);
 	}
 }
 

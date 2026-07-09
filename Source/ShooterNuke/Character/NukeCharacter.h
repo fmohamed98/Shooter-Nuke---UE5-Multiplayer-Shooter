@@ -14,7 +14,9 @@
 class UAnimMontage;
 class USpringArmComponent;
 class UCameraComponent;
+class UBoxComponent;
 class UCombatComponent;
+class ULagCompensationComponent;
 class USoundCue;
 class AWeapon;
 class ANukePlayerController;
@@ -79,6 +81,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true", DisplayName = "Combat Component"))
 	UCombatComponent* m_CombatComponent;
 
+	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Lag Compensation Component"))
+	ULagCompensationComponent* m_LagCompensationComponent;
+
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Fire Weapon Montage"))
 	UAnimMontage* m_FireWeaponMontage;
 
@@ -92,7 +97,63 @@ private:
 	UAnimMontage* m_ElimMontage;
 
 	ANukePlayerController* m_NukePlayerController = nullptr;
-public:	
+
+public:
+	//Hit boxes for server-side rewind
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Head"))
+	UBoxComponent* m_HeadBox;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Spine_02"))
+	UBoxComponent* m_Spine02;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Spine_03"))
+	UBoxComponent* m_Spine03;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Pelvis"))
+	UBoxComponent* m_Pelvis;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Upperarm_l"))
+	UBoxComponent* m_UpperarmL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Upperarm_r"))
+	UBoxComponent* m_UpperarmR;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Lowerarm_l"))
+	UBoxComponent* m_LowerarmL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Lowerarm_r"))
+	UBoxComponent* m_LowerarmR;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Hand_l"))
+	UBoxComponent* m_HandL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Hand_r"))
+	UBoxComponent* m_HandR;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Backpack"))
+	UBoxComponent* m_Backpack;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Blanket"))
+	UBoxComponent* m_Blanket;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Thigh_l"))
+	UBoxComponent* m_ThighL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Thigh_r"))
+	UBoxComponent* m_ThighR;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Calf_l"))
+	UBoxComponent* m_CalfL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Calf_r"))
+	UBoxComponent* m_CalfR;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Foot_l"))
+	UBoxComponent* m_FootL;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Foot_r"))
+	UBoxComponent* m_FootR;
+
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
