@@ -41,10 +41,12 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	void SaveFramePackage(FFramePackage& packge);
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void ShowFramePackage(const FFramePackage& package, const FColor& color);
 
 private:
 	UPROPERTY()
@@ -52,4 +54,9 @@ private:
 
 	UPROPERTY()
 	ANukePlayerController* m_Controller;
+
+	TDoubleLinkedList<FFramePackage> m_FrameHistory;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Max Record Time"))
+	float m_MaxRecordTime = 4.f;
 };

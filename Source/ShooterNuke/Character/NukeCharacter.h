@@ -154,6 +154,9 @@ public:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Foot_r"))
 	UBoxComponent* m_FootR;
 
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> m_HitCollisionBoxes;
+
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* weapon);
