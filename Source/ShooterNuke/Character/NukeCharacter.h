@@ -181,6 +181,7 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return m_TurningInPlace; }
 	FORCEINLINE bool IsEliminated() const { return m_IsEliminated; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return m_CombatComponent; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent() const { return m_LagCompensationComponent; }
 	ECombatState GetCombatState() const;
 
 	UPROPERTY(Replicated)
