@@ -29,6 +29,16 @@ struct FFramePackage
 	TMap<FName, FBoxInfo> m_HitBoxInfo;
 };
 
+
+USTRUCT(BlueprintType)
+struct FServerSideRewindResult
+{
+	GENERATED_BODY()
+
+	bool m_HitConfirmed;
+	bool m_HeadShot;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SHOOTERNUKE_API ULagCompensationComponent : public UActorComponent
 {
@@ -44,12 +54,18 @@ protected:
 	virtual void BeginPlay() override;
 	void SaveFramePackage(FFramePackage& packge);
 	FFramePackage InterpBetweenFrames(const FFramePackage& olderFrame, const FFramePackage& youngerFrame, float hitTime);
+	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
+	void CacheBoxPositions(ANukeCharacter* hitCharacter, FFramePackage& outFramePackage);
+	void MoveHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
+	void ResetHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
+	void SetCharacterCollision(ANukeCharacter* hitCharacter, ECollisionEnabled::Type collisionEnabled);
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ShowFramePackage(const FFramePackage& package, const FColor& color);
-	void ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
+	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 
 private:
 	UPROPERTY()
