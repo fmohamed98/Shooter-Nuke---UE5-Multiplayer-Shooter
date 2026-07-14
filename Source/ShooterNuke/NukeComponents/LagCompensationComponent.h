@@ -28,6 +28,9 @@ struct FFramePackage
 	float m_Time;
 
 	TMap<FName, FBoxInfo> m_HitBoxInfo;
+
+	UPROPERTY()
+	ANukeCharacter* m_Character;
 };
 
 
@@ -38,6 +41,18 @@ struct FServerSideRewindResult
 
 	bool m_HitConfirmed;
 	bool m_HeadShot;
+};
+
+USTRUCT(BlueprintType)
+struct FShotgunServerSideRewindResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TMap<ANukeCharacter*, uint32> m_HeadShots;
+
+	UPROPERTY()
+	TMap<ANukeCharacter*, uint32> m_BodyShots;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -56,21 +71,27 @@ protected:
 	void SaveFramePackage();
 	void SaveFramePackage(FFramePackage& packge);
 	FFramePackage InterpBetweenFrames(const FFramePackage& olderFrame, const FFramePackage& youngerFrame, float hitTime);
+	FFramePackage GetFrameToCheck(ANukeCharacter* hitCharacter, float hitTime);
 	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
+	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 	void CacheBoxPositions(ANukeCharacter* hitCharacter, FFramePackage& outFramePackage);
 	void MoveHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
 	void ResetHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
 	void SetCharacterCollision(ANukeCharacter* hitCharacter, ECollisionEnabled::Type collisionEnabled);
+
+	//Shotgun SSR
+	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
+	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& framePackages, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations);
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ShowFramePackage(const FFramePackage& package, const FColor& color);
-	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
+
 private:
 	UPROPERTY()
 	ANukeCharacter* m_Character;

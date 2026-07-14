@@ -26,6 +26,14 @@ void ULagCompensationComponent::BeginPlay()
 	m_Character = m_Character == nullptr ? Cast<ANukeCharacter>(GetOwner()) : m_Character;
 }
 
+// Called every frame
+void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	SaveFramePackage();
+}
+
 void ULagCompensationComponent::SaveFramePackage()
 {
 	if (m_Character == nullptr || !m_Character->HasAuthority())
@@ -60,6 +68,7 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& package)
 	}
 
 	package.m_Time = GetWorld()->GetTimeSeconds();
+	package.m_Character = m_Character;
 	for (auto& boxPair : m_Character->m_HitCollisionBoxes)
 	{
 		FBoxInfo boxInfo;
@@ -222,30 +231,13 @@ FFramePackage ULagCompensationComponent::InterpBetweenFrames(const FFramePackage
 	return interpFramePackage;
 }
 
-
-// Called every frame
-void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
-	SaveFramePackage();
-}
-
-void ULagCompensationComponent::ShowFramePackage(const FFramePackage& package, const FColor& color)
-{
-	for (auto& boxInfo : package.m_HitBoxInfo)
-	{
-		DrawDebugBox(GetWorld(), boxInfo.Value.m_Location, boxInfo.Value.m_BoxExtent, FQuat(boxInfo.Value.m_Rotation), color, false, m_MaxRecordTime);
-	}
-}
-
-FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime)
+FFramePackage ULagCompensationComponent::GetFrameToCheck(ANukeCharacter* hitCharacter, float hitTime)
 {
 	if (hitCharacter == nullptr || hitCharacter->GetLagCompensationComponent() == nullptr ||
 		hitCharacter->GetLagCompensationComponent()->m_FrameHistory.GetHead() == nullptr ||
 		hitCharacter->GetLagCompensationComponent()->m_FrameHistory.GetTail() == nullptr)
 	{
-		return FServerSideRewindResult();
+		return FFramePackage();
 	}
 
 	//history of hit character
@@ -257,7 +249,7 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharact
 	if (oldestHistoryTime > hitTime)
 	{
 		//hit character too laggy to do server side rewind
-		return FServerSideRewindResult();;
+		return FFramePackage();;
 	}
 
 	FFramePackage frameToCheck;
@@ -292,7 +284,38 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharact
 		frameToCheck = InterpBetweenFrames(older->GetValue(), younger->GetValue(), hitTime);
 	}
 
+	return frameToCheck;
+}
+
+void ULagCompensationComponent::ShowFramePackage(const FFramePackage& package, const FColor& color)
+{
+	for (auto& boxInfo : package.m_HitBoxInfo)
+	{
+		DrawDebugBox(GetWorld(), boxInfo.Value.m_Location, boxInfo.Value.m_BoxExtent, FQuat(boxInfo.Value.m_Rotation), color, false, m_MaxRecordTime);
+	}
+}
+
+FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime)
+{
+	const FFramePackage& frameToCheck = GetFrameToCheck(hitCharacter, hitTime);
+
 	return ConfirmHit(frameToCheck, hitCharacter, traceStart, hitLocation);
+}
+
+FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunServerSideRewind(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime)
+{
+	TArray<FFramePackage> framesToCheck;
+	for (ANukeCharacter* hitCharacter : hitCharacters)
+	{
+		framesToCheck.Add(GetFrameToCheck(hitCharacter, hitTime));
+	}
+
+	return FShotgunServerSideRewindResult();
+}
+
+FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(const TArray<FFramePackage>& framePackages, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations)
+{
+	return FShotgunServerSideRewindResult();
 }
 
 void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser)
@@ -302,7 +325,7 @@ void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter
 		return;
 	}
 
-	FServerSideRewindResult ssrResult = ServerSideRewind(hitCharacter, traceStart, hitLocation, hitTime);
+	const FServerSideRewindResult& ssrResult = ServerSideRewind(hitCharacter, traceStart, hitLocation, hitTime);
 
 	if (ssrResult.m_HitConfirmed)
 	{
