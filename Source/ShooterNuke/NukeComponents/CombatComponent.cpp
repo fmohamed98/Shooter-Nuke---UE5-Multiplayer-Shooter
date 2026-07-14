@@ -403,8 +403,12 @@ void UCombatComponent::SetHUDCrossHairs(const float deltaTime)
 	}
 
 	m_PlayerController = m_PlayerController == nullptr ? Cast<ANukePlayerController>(m_Character->Controller) : m_PlayerController;
-	m_HUD = m_HUD == nullptr ? Cast<ANukeHUD>(m_PlayerController->GetHUD()) : m_HUD;
+	if (m_PlayerController == nullptr)
+	{
+		return;
+	}
 
+	m_HUD = m_HUD == nullptr ? Cast<ANukeHUD>(m_PlayerController->GetHUD()) : m_HUD;
 	if (m_HUD == nullptr)
 	{
 		return;

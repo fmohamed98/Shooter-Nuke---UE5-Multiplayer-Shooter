@@ -5,6 +5,8 @@
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "Components/BoxComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "ShooterNuke/Weapon/Weapon.h"
 
 // Sets default values for this component's properties
 ULagCompensationComponent::ULagCompensationComponent()
@@ -22,6 +24,32 @@ void ULagCompensationComponent::BeginPlay()
 	Super::BeginPlay();
 
 	m_Character = m_Character == nullptr ? Cast<ANukeCharacter>(GetOwner()) : m_Character;
+}
+
+void ULagCompensationComponent::SaveFramePackage()
+{
+	if (m_Character == nullptr || !m_Character->HasAuthority())
+	{
+		return;
+	}
+
+	if (m_FrameHistory.Num() > 1)
+	{
+		float historyLength = m_FrameHistory.GetHead()->GetValue().m_Time - m_FrameHistory.GetTail()->GetValue().m_Time;
+
+		while (historyLength > m_MaxRecordTime)
+		{
+			m_FrameHistory.RemoveNode(m_FrameHistory.GetTail());
+
+			historyLength = m_FrameHistory.GetHead()->GetValue().m_Time - m_FrameHistory.GetTail()->GetValue().m_Time;
+		}
+	}
+
+	FFramePackage thisFramePackage;
+	SaveFramePackage(thisFramePackage);
+	m_FrameHistory.AddHead(thisFramePackage);
+
+	ShowFramePackage(thisFramePackage, FColor::Red);
 }
 
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& package)
@@ -199,24 +227,8 @@ FFramePackage ULagCompensationComponent::InterpBetweenFrames(const FFramePackage
 void ULagCompensationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (m_FrameHistory.Num() > 1)
-	{
-		float historyLength = m_FrameHistory.GetHead()->GetValue().m_Time - m_FrameHistory.GetTail()->GetValue().m_Time;
-
-		while (historyLength > m_MaxRecordTime)
-		{
-			m_FrameHistory.RemoveNode(m_FrameHistory.GetTail());
-
-			historyLength = m_FrameHistory.GetHead()->GetValue().m_Time - m_FrameHistory.GetTail()->GetValue().m_Time;
-		}
-	}
-
-	FFramePackage thisFramePackage;
-	SaveFramePackage(thisFramePackage);
-	m_FrameHistory.AddHead(thisFramePackage);
-
-	ShowFramePackage(thisFramePackage, FColor::Red);
+	
+	SaveFramePackage();
 }
 
 void ULagCompensationComponent::ShowFramePackage(const FFramePackage& package, const FColor& color)
@@ -225,7 +237,6 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& package, c
 	{
 		DrawDebugBox(GetWorld(), boxInfo.Value.m_Location, boxInfo.Value.m_BoxExtent, FQuat(boxInfo.Value.m_Rotation), color, false, m_MaxRecordTime);
 	}
-
 }
 
 FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime)
@@ -282,5 +293,20 @@ FServerSideRewindResult ULagCompensationComponent::ServerSideRewind(ANukeCharact
 	}
 
 	return ConfirmHit(frameToCheck, hitCharacter, traceStart, hitLocation);
+}
+
+void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser)
+{
+	if (hitCharacter == nullptr || m_Character == nullptr)
+	{
+		return;
+	}
+
+	FServerSideRewindResult ssrResult = ServerSideRewind(hitCharacter, traceStart, hitLocation, hitTime);
+
+	if (ssrResult.m_HitConfirmed)
+	{
+		UGameplayStatics::ApplyDamage(hitCharacter, damageCauser->GetDamage(), m_Character->Controller, damageCauser, UDamageType::StaticClass());
+	}
 }
 

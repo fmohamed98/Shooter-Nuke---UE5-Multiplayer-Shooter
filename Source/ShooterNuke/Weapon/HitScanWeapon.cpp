@@ -8,6 +8,9 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "WeaponTypes.h"
+#include "ShooterNuke/NukeComponents/LagCompensationComponent.h"
+#include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 
 void AHitScanWeapon::Fire(const FVector& hitTarget)
 {
@@ -32,9 +35,20 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
     FHitResult hitResult;
     WeaponTraceHit(start, hitTarget, hitResult);
 
-    if (HasAuthority())
+    if (HasAuthority() && !m_UseServerSideRewind)
     {
         UGameplayStatics::ApplyDamage(hitResult.GetActor(), m_Damage, instigatorController, this, UDamageType::StaticClass());
+    }
+
+    if(!HasAuthority() && m_UseServerSideRewind)
+    {
+        m_OwningCharacter = m_OwningCharacter == nullptr ? Cast<ANukeCharacter>(ownerPawn) : m_OwningCharacter;
+        m_OwningCharacterController = m_OwningCharacterController == nullptr ? Cast<ANukePlayerController>(instigatorController) : m_OwningCharacterController;
+
+        if (m_OwningCharacter != nullptr && m_OwningCharacterController != nullptr && m_OwningCharacter->GetLagCompensationComponent())
+        {
+            m_OwningCharacter->GetLagCompensationComponent()->ServerScoreRequest(Cast<ANukeCharacter>(hitResult.GetActor()), start, hitTarget, m_OwningCharacterController->GetServerTime() - m_OwningCharacterController->m_SingleTripTime, this);
+        }
     }
 
     UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_ImpactParticles, hitResult.ImpactPoint, hitResult.ImpactNormal.Rotation());

@@ -177,7 +177,8 @@ void ANukePlayerController::SetHUDTime()
 void ANukePlayerController::ClientReportServerTime_Implementation(float timeOfClientRequest, float timeServerReceivedClientRequest)
 {
     float roundTripTime = GetWorld()->GetTimeSeconds() - timeOfClientRequest;
-    float currentServerTime = timeServerReceivedClientRequest + roundTripTime * .5f;
+    m_SingleTripTime = roundTripTime * .5f;
+    float currentServerTime = timeServerReceivedClientRequest + m_SingleTripTime;
 
     m_ClientServerDelta = currentServerTime - GetWorld()->GetTimeSeconds();
 }

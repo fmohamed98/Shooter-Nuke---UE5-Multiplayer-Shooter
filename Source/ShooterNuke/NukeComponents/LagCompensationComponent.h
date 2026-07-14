@@ -8,6 +8,7 @@
 
 class ANukePlayerController;
 class ANukeCharacter;
+class AWeapon;
 
 USTRUCT(BlueprintType)
 struct FBoxInfo
@@ -52,6 +53,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	void SaveFramePackage();
 	void SaveFramePackage(FFramePackage& packge);
 	FFramePackage InterpBetweenFrames(const FFramePackage& olderFrame, const FFramePackage& youngerFrame, float hitTime);
 	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
@@ -67,6 +69,8 @@ public:
 	void ShowFramePackage(const FFramePackage& package, const FColor& color);
 	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 
+	UFUNCTION(Server, Reliable)
+	void ServerScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
 private:
 	UPROPERTY()
 	ANukeCharacter* m_Character;

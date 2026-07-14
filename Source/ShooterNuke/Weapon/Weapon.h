@@ -46,6 +46,16 @@ public:
 	AWeapon();
 
 protected:
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
+	float m_Damage = 20.f;
+
+	UPROPERTY()
+	ANukeCharacter* m_OwningCharacter = nullptr;
+
+	UPROPERTY()
+	ANukePlayerController* m_OwningCharacterController = nullptr;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -152,6 +162,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Automatic"))
 	bool m_IsAutomatic = false;
 
+	UPROPERTY(EditAnywhere, Category = "Lag Compensation", meta = (DisplayName = "Use Server Side Rewind"))
+	bool m_UseServerSideRewind = false;
+
 	void SetWeaponState(EWeaponState weaponState);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return m_AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return m_WeaponMesh; }
@@ -161,11 +174,10 @@ public:
 	FORCEINLINE uint32 GetMagCapacity() const { return m_MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return m_WeaponType; }
 	FORCEINLINE EFireType GetFireType() const { return m_FireType; }
+	FORCEINLINE float GetDamage() const { return m_Damage; }
 	FORCEINLINE bool IsEmpty() const { return m_Ammo == 0; }
 
 private:
-	ANukeCharacter* m_OwningCharacter = nullptr;
-	ANukePlayerController* m_OwningCharacterController = nullptr;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Zoomed FOV"))
 	float m_ZoomedFOV = 30.f;

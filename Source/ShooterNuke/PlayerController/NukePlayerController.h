@@ -82,6 +82,8 @@ private:
 	void HandleMatchState();
 
 public:
+	float m_SingleTripTime = 0.f;
+
 	void SetHUDHealth(float health, float maxHealth);
 	void SetHUDScore(float scoreAmount);
 	void SetHUDDeathCount(uint32 deathCount);
