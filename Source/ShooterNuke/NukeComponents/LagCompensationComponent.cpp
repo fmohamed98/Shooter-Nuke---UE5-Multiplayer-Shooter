@@ -79,61 +79,6 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& package)
 	}
 }
 
-FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation)
-{
-	if (hitCharacter == nullptr)
-	{
-		return FServerSideRewindResult();
-	}
-
-	FFramePackage currentFramePackage;
-	CacheBoxPositions(hitCharacter, currentFramePackage);
-	MoveHitBoxes(hitCharacter, package);
-	SetCharacterCollision(hitCharacter, ECollisionEnabled::NoCollision);
-
-	//checking headshot first
-	UBoxComponent* headBox = hitCharacter->m_HitCollisionBoxes[FName("head")];
-	headBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	headBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-
-	FHitResult confirmHitResult;
-	const FVector traceEnd = traceStart + (hitLocation - traceStart)*1.25f;
-
-	if (UWorld* world = GetWorld())
-	{
-		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
-		if (confirmHitResult.bBlockingHit) // hit head return early
-		{
-			ResetHitBoxes(hitCharacter, currentFramePackage);
-			SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
-			return FServerSideRewindResult{true, true};
-		}
-		else
-		{
-			for (auto& hitBoxPair : hitCharacter->m_HitCollisionBoxes)
-			{
-				if (hitBoxPair.Value != nullptr)
-				{
-					hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-					hitBoxPair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-				}
-			}
-
-			world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
-			if (confirmHitResult.bBlockingHit) // hit other than head
-			{
-				ResetHitBoxes(hitCharacter, currentFramePackage);
-				SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
-				return FServerSideRewindResult{ true, false };
-			}
-		}
-	}
-
-	ResetHitBoxes(hitCharacter, currentFramePackage);
-	SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
-	return FServerSideRewindResult{ false, false };
-}
-
 void ULagCompensationComponent::CacheBoxPositions(ANukeCharacter* hitCharacter, FFramePackage& outFramePackage)
 {
 	if (hitCharacter == nullptr)
@@ -310,12 +255,152 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunServerSideRewin
 		framesToCheck.Add(GetFrameToCheck(hitCharacter, hitTime));
 	}
 
-	return FShotgunServerSideRewindResult();
+	return ShotgunConfirmHit(framesToCheck, traceStart, hitLocations);
+}
+
+
+FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation)
+{
+	if (hitCharacter == nullptr)
+	{
+		return FServerSideRewindResult();
+	}
+
+	FFramePackage currentFramePackage;
+	CacheBoxPositions(hitCharacter, currentFramePackage);
+	MoveHitBoxes(hitCharacter, package);
+	SetCharacterCollision(hitCharacter, ECollisionEnabled::NoCollision);
+
+	//checking headshot first
+	UBoxComponent* headBox = hitCharacter->m_HitCollisionBoxes[FName("head")];
+	headBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	headBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
+	FHitResult confirmHitResult;
+	const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
+
+	if (UWorld* world = GetWorld())
+	{
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+		if (confirmHitResult.bBlockingHit) // hit head return early
+		{
+			ResetHitBoxes(hitCharacter, currentFramePackage);
+			SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
+			return FServerSideRewindResult{ true, true };
+		}
+		else
+		{
+			for (auto& hitBoxPair : hitCharacter->m_HitCollisionBoxes)
+			{
+				if (hitBoxPair.Value != nullptr)
+				{
+					hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+					hitBoxPair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+				}
+			}
+
+			world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+			if (confirmHitResult.bBlockingHit) // hit other than head
+			{
+				ResetHitBoxes(hitCharacter, currentFramePackage);
+				SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
+				return FServerSideRewindResult{ true, false };
+			}
+		}
+	}
+
+	ResetHitBoxes(hitCharacter, currentFramePackage);
+	SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
+	return FServerSideRewindResult{ false, false };
 }
 
 FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(const TArray<FFramePackage>& framePackages, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations)
 {
-	return FShotgunServerSideRewindResult();
+	FShotgunServerSideRewindResult shotgunSSRResult;
+	TArray<FFramePackage> currentFrames;
+	for (auto& package : framePackages)
+	{
+		if (package.m_Character == nullptr)
+		{
+			continue;
+		}
+
+		FFramePackage currentFramePackage;
+		currentFramePackage.m_Character = package.m_Character;
+		CacheBoxPositions(package.m_Character, currentFramePackage);
+		MoveHitBoxes(package.m_Character, package);
+		SetCharacterCollision(package.m_Character, ECollisionEnabled::NoCollision);
+		currentFrames.Add(currentFramePackage);
+
+		//checking headshot first
+		UBoxComponent* headBox = package.m_Character->m_HitCollisionBoxes[FName("head")];
+		headBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		headBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	}
+
+	UWorld* world = GetWorld();
+	if (world == nullptr)
+	{
+		return FShotgunServerSideRewindResult();
+	}
+	//check for headshots
+	for (auto& hitLocation : hitLocations)
+	{
+		FHitResult confirmHitResult;
+		const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+
+		ANukeCharacter* hitCharacter = Cast<ANukeCharacter>(confirmHitResult.GetActor());
+		if (hitCharacter == nullptr)
+		{
+			continue;
+		}
+
+		shotgunSSRResult.m_HeadShots.FindOrAdd(hitCharacter)++;
+	}
+
+	for (auto& package : framePackages)
+	{
+		if (package.m_Character == nullptr)
+		{
+			continue;
+		}
+
+		for (auto& hitBoxPair : package.m_Character->m_HitCollisionBoxes)
+		{
+			if (hitBoxPair.Value != nullptr)
+			{
+				hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+				hitBoxPair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+			}
+		}
+
+		UBoxComponent* headBox = package.m_Character->m_HitCollisionBoxes[FName("head")];
+		headBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	for (auto& hitLocation : hitLocations)
+	{
+		FHitResult confirmHitResult;
+		const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+
+		ANukeCharacter* hitCharacter = Cast<ANukeCharacter>(confirmHitResult.GetActor());
+		if (hitCharacter == nullptr)
+		{
+			continue;
+		}
+
+		shotgunSSRResult.m_BodyShots.FindOrAdd(hitCharacter)++;
+	}
+
+	for (auto& frame : currentFrames)
+	{
+		ResetHitBoxes(frame.m_Character, frame);
+		SetCharacterCollision(frame.m_Character, ECollisionEnabled::QueryAndPhysics);
+	}
+
+	return shotgunSSRResult;
 }
 
 void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser)
