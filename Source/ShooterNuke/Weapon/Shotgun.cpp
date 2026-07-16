@@ -8,6 +8,8 @@
 #include "Sound/SoundCue.h"
 #include "ShooterNuke/Character/NukeCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "ShooterNuke/NukeComponents/LagCompensationComponent.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 
 void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitTargets)
 {
@@ -44,11 +46,25 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitTargets)
         UGameplayStatics::PlaySoundAtLocation(this, m_HitSound, hitResult.ImpactPoint);
     }
 
+    TArray<ANukeCharacter*> hitCharacters;
     for (auto& hitPair : hitMap)
     {
-        if (HasAuthority())
+        if (HasAuthority() && !m_UseServerSideRewind)
         {
             UGameplayStatics::ApplyDamage(hitPair.Key, m_Damage * hitPair.Value, instigatorController, this, UDamageType::StaticClass());
+        }
+
+        hitCharacters.Add(hitPair.Key);
+    }
+
+    if (!HasAuthority() && m_UseServerSideRewind)
+    {
+        m_OwningCharacter = m_OwningCharacter == nullptr ? Cast<ANukeCharacter>(ownerPawn) : m_OwningCharacter;
+        m_OwningCharacterController = m_OwningCharacterController == nullptr ? Cast<ANukePlayerController>(instigatorController) : m_OwningCharacterController;
+
+        if (m_OwningCharacter != nullptr && m_OwningCharacterController != nullptr && m_OwningCharacter->GetLagCompensationComponent() && m_OwningCharacter->IsLocallyControlled())
+        {
+            m_OwningCharacter->GetLagCompensationComponent()->ServerShotgunScoreRequest(hitCharacters, start, hitTargets, m_OwningCharacterController->GetServerTime() - m_OwningCharacterController->m_SingleTripTime);
         }
     }
 }

@@ -68,7 +68,6 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& package)
 	}
 
 	package.m_Time = GetWorld()->GetTimeSeconds();
-	package.m_Character = m_Character;
 	for (auto& boxPair : m_Character->m_HitCollisionBoxes)
 	{
 		FBoxInfo boxInfo;
@@ -228,6 +227,8 @@ FFramePackage ULagCompensationComponent::GetFrameToCheck(ANukeCharacter* hitChar
 	{
 		frameToCheck = InterpBetweenFrames(older->GetValue(), younger->GetValue(), hitTime);
 	}
+
+	frameToCheck.m_Character = hitCharacter;
 
 	return frameToCheck;
 }
@@ -415,6 +416,33 @@ void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter
 	if (ssrResult.m_HitConfirmed)
 	{
 		UGameplayStatics::ApplyDamage(hitCharacter, damageCauser->GetDamage(), m_Character->Controller, damageCauser, UDamageType::StaticClass());
+	}
+}
+
+void ULagCompensationComponent::ServerShotgunScoreRequest_Implementation(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime)
+{
+	const FShotgunServerSideRewindResult& ssrResult = ShotgunServerSideRewind(hitCharacters, traceStart, hitLocations, hitTime);
+
+	for (auto& hitCharacter : hitCharacters)
+	{
+		if (m_Character == nullptr || m_Character->GetEquippedWeapon() == nullptr)
+		{
+			continue;
+		}
+
+		float totalDamage = 0.f;
+		if (ssrResult.m_HeadShots.Contains(hitCharacter))
+		{
+			float headShotDamage = ssrResult.m_HeadShots[hitCharacter] * m_Character->GetEquippedWeapon()->GetDamage();
+			totalDamage += headShotDamage;
+		}
+		if (ssrResult.m_BodyShots.Contains(hitCharacter))
+		{
+			float bodyShotDamage = ssrResult.m_BodyShots[hitCharacter] * m_Character->GetEquippedWeapon()->GetDamage();
+			totalDamage += bodyShotDamage;
+		}
+
+		UGameplayStatics::ApplyDamage(hitCharacter, totalDamage, m_Character->Controller, m_Character->GetEquippedWeapon(), UDamageType::StaticClass());
 	}
 }
 

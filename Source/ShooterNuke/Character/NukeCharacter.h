@@ -183,6 +183,7 @@ public:
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return m_CombatComponent; }
 	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent() const { return m_LagCompensationComponent; }
 	ECombatState GetCombatState() const;
+	AWeapon* GetEquippedWeapon() const;
 
 	UPROPERTY(Replicated)
 	bool m_DisableGameplay = false;

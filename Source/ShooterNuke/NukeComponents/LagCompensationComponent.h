@@ -72,12 +72,13 @@ protected:
 	void SaveFramePackage(FFramePackage& packge);
 	FFramePackage InterpBetweenFrames(const FFramePackage& olderFrame, const FFramePackage& youngerFrame, float hitTime);
 	FFramePackage GetFrameToCheck(ANukeCharacter* hitCharacter, float hitTime);
-	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
-	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 	void CacheBoxPositions(ANukeCharacter* hitCharacter, FFramePackage& outFramePackage);
 	void MoveHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
 	void ResetHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
 	void SetCharacterCollision(ANukeCharacter* hitCharacter, ECollisionEnabled::Type collisionEnabled);
+
+	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
+	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
 
 	//Shotgun SSR
 	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
@@ -91,6 +92,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
+
+	UFUNCTION(Server, Reliable)
+	void ServerShotgunScoreRequest(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
 
 private:
 	UPROPERTY()

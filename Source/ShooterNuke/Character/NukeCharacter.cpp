@@ -536,6 +536,11 @@ ECombatState ANukeCharacter::GetCombatState() const
 	return m_CombatComponent->m_CombatState;
 }
 
+AWeapon* ANukeCharacter::GetEquippedWeapon() const
+{
+	return m_CombatComponent == nullptr ? nullptr : m_CombatComponent->m_EquippedWeapon;
+}
+
 void ANukeCharacter::TurnInPlace(float deltaTime)
 {
 	if (m_AimOffsetYaw > 90.f)

@@ -35,9 +35,6 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& outLifetimeProps) const override;
 
 private:
-	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-	AWeapon* m_EquippedWeapon;
-
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
@@ -78,7 +75,11 @@ private:
 
 	void TraceUnderCrossHairs(FHitResult& hitResult);
 	void SetHUDCrossHairs(const float deltaTime);
+
 public:
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
+	AWeapon* m_EquippedWeapon;
+
 	void SetAiming(const bool isAiming);
 	void FireButtonPressed(const bool isPressed);
 
