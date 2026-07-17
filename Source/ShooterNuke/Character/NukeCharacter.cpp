@@ -141,6 +141,16 @@ ANukeCharacter::ANukeCharacter()
 	m_FootR->SetupAttachment(GetMesh(), FName("foot_r"));
 	m_FootR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_HitCollisionBoxes.Add(FName("foot_r"), m_FootR);
+
+	for (auto& box : m_HitCollisionBoxes)
+	{
+		if (box.Value != nullptr)
+		{
+			box.Value->SetCollisionObjectType(ECC_HitBox);
+			box.Value->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			box.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+		}
+	}
 }
 
 // Called when the game starts or when spawned

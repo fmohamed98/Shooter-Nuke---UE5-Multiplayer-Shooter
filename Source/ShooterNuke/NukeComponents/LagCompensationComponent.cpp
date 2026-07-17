@@ -7,6 +7,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "ShooterNuke/Weapon/Weapon.h"
+#include "ShooterNuke/ShooterNuke.h"
 
 // Sets default values for this component's properties
 ULagCompensationComponent::ULagCompensationComponent()
@@ -275,16 +276,23 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 	//checking headshot first
 	UBoxComponent* headBox = hitCharacter->m_HitCollisionBoxes[FName("head")];
 	headBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	headBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	headBox->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 
 	FHitResult confirmHitResult;
 	const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
 
 	if (UWorld* world = GetWorld())
 	{
-		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECC_HitBox);
 		if (confirmHitResult.bBlockingHit) // hit head return early
 		{
+			/*if (confirmHitResult.Component.IsValid())
+			{
+				if (UBoxComponent* box = Cast<UBoxComponent>(confirmHitResult.Component))
+				{
+					DrawDebugBox(world, box->GetComponentLocation(), box->GetScaledBoxExtent(), FQuat(box->GetComponentRotation()), FColor::Red, false, 8.f);
+				}
+			}*/
 			ResetHitBoxes(hitCharacter, currentFramePackage);
 			SetCharacterCollision(hitCharacter, ECollisionEnabled::QueryAndPhysics);
 			return FServerSideRewindResult{ true, true };
@@ -296,11 +304,11 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit(const FFramePackag
 				if (hitBoxPair.Value != nullptr)
 				{
 					hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-					hitBoxPair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+					hitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 				}
 			}
 
-			world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+			world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECC_HitBox);
 			if (confirmHitResult.bBlockingHit) // hit other than head
 			{
 				ResetHitBoxes(hitCharacter, currentFramePackage);
@@ -336,7 +344,7 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 		//checking headshot first
 		UBoxComponent* headBox = package.m_Character->m_HitCollisionBoxes[FName("head")];
 		headBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		headBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		headBox->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 	}
 
 	UWorld* world = GetWorld();
@@ -349,13 +357,21 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 	{
 		FHitResult confirmHitResult;
 		const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
-		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECC_HitBox);
 
 		ANukeCharacter* hitCharacter = Cast<ANukeCharacter>(confirmHitResult.GetActor());
 		if (hitCharacter == nullptr)
 		{
 			continue;
 		}
+
+		/*if (confirmHitResult.Component.IsValid())
+		{
+			if (UBoxComponent* box = Cast<UBoxComponent>(confirmHitResult.Component))
+			{
+				DrawDebugBox(world, box->GetComponentLocation(), box->GetScaledBoxExtent(), FQuat(box->GetComponentRotation()), FColor::Red, false, 8.f);
+			}
+		}*/
 
 		shotgunSSRResult.m_HeadShots.FindOrAdd(hitCharacter)++;
 	}
@@ -372,7 +388,7 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 			if (hitBoxPair.Value != nullptr)
 			{
 				hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-				hitBoxPair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+				hitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 			}
 		}
 
@@ -384,13 +400,21 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 	{
 		FHitResult confirmHitResult;
 		const FVector traceEnd = traceStart + (hitLocation - traceStart) * 1.25f;
-		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECollisionChannel::ECC_Visibility);
+		world->LineTraceSingleByChannel(confirmHitResult, traceStart, traceEnd, ECC_HitBox);
 
 		ANukeCharacter* hitCharacter = Cast<ANukeCharacter>(confirmHitResult.GetActor());
 		if (hitCharacter == nullptr)
 		{
 			continue;
 		}
+
+        /*if (confirmHitResult.Component.IsValid())
+        {
+            if (UBoxComponent* box = Cast<UBoxComponent>(confirmHitResult.Component))
+            {
+                DrawDebugBox(world, box->GetComponentLocation(), box->GetScaledBoxExtent(), FQuat(box->GetComponentRotation()), FColor::Cyan, false, 8.f);
+            }
+        }*/
 
 		shotgunSSRResult.m_BodyShots.FindOrAdd(hitCharacter)++;
 	}
