@@ -17,6 +17,9 @@ private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Projectile Class"));
 	TSubclassOf<AProjectile> m_ProjectileClass;
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Server-side Rewind Projectile Class"));
+	TSubclassOf<AProjectile> m_SSRProjectileClass;
+
 public:
 	void Fire(const FVector& hitTarget) override;
 };

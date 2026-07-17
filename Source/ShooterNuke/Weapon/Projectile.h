@@ -49,8 +49,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Projectile Mesh"))
 	UStaticMeshComponent* m_ProjectileMesh;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage"))
-	float m_Damage = 5.f;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Damage Inner Radius"))
 	float m_DamageInnerRadius = 200.f;
@@ -69,6 +67,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	void Destroyed() override;
+
+	//SSR
+	bool m_UseServerSideRewind = false;
+	FVector_NetQuantize m_TraceStart;
+	FVector_NetQuantize100 m_InitialVelocity;
+
+	float m_Damage = 5.f;
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Initial Speed"))
+	float m_InitialSpeed = 15000.f;
 
 private:
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "Tracer"))

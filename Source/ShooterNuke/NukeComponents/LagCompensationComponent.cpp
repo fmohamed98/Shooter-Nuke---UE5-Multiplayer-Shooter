@@ -57,7 +57,7 @@ void ULagCompensationComponent::SaveFramePackage()
 	SaveFramePackage(thisFramePackage);
 	m_FrameHistory.AddHead(thisFramePackage);
 
-	ShowFramePackage(thisFramePackage, FColor::Red);
+	//ShowFramePackage(thisFramePackage, FColor::Red);
 }
 
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& package)
@@ -411,7 +411,7 @@ void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter
 		return;
 	}
 
-	const FServerSideRewindResult& ssrResult = ServerSideRewind(hitCharacter, traceStart, hitLocation, hitTime);
+	const FServerSideRewindResult ssrResult = ServerSideRewind(hitCharacter, traceStart, hitLocation, hitTime);
 
 	if (ssrResult.m_HitConfirmed)
 	{
@@ -421,7 +421,7 @@ void ULagCompensationComponent::ServerScoreRequest_Implementation(ANukeCharacter
 
 void ULagCompensationComponent::ServerShotgunScoreRequest_Implementation(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime)
 {
-	const FShotgunServerSideRewindResult& ssrResult = ShotgunServerSideRewind(hitCharacters, traceStart, hitLocations, hitTime);
+	const FShotgunServerSideRewindResult ssrResult = ShotgunServerSideRewind(hitCharacters, traceStart, hitLocations, hitTime);
 
 	for (auto& hitCharacter : hitCharacters)
 	{

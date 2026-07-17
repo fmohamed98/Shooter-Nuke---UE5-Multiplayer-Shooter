@@ -17,6 +17,11 @@ class SHOOTERNUKE_API AProjectileBullet : public AProjectile
 public:
 	AProjectileBullet();
 
+#ifdef WITH_EDITOR
+	void PostEditChangeProperty(FPropertyChangedEvent& event) override;
+#endif // WITH_EDITOR
+
 protected:
 	void OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hitResult) override;
+	void BeginPlay() override;
 };
