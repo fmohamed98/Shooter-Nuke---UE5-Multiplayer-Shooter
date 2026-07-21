@@ -47,7 +47,7 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
 
         if (m_OwningCharacter != nullptr && m_OwningCharacterController != nullptr && m_OwningCharacter->GetLagCompensationComponent() && m_OwningCharacter->IsLocallyControlled())
         {
-            m_OwningCharacter->GetLagCompensationComponent()->ServerScoreRequest(Cast<ANukeCharacter>(hitResult.GetActor()), start, hitTarget, m_OwningCharacterController->GetServerTime() - m_OwningCharacterController->m_SingleTripTime, this);
+            m_OwningCharacter->GetLagCompensationComponent()->ServerHitScanScoreRequest(Cast<ANukeCharacter>(hitResult.GetActor()), start, hitTarget, m_OwningCharacterController->GetServerTime() - m_OwningCharacterController->m_SingleTripTime, this);
         }
     }
 

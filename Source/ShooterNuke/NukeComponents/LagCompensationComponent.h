@@ -77,8 +77,13 @@ protected:
 	void ResetHitBoxes(ANukeCharacter* hitCharacter, const FFramePackage& package);
 	void SetCharacterCollision(ANukeCharacter* hitCharacter, ECollisionEnabled::Type collisionEnabled);
 
-	FServerSideRewindResult ConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
-	FServerSideRewindResult ServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
+	//HitScan SSR
+	FServerSideRewindResult HitScanConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation);
+	FServerSideRewindResult HitScanServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime);
+
+	//Projectile SSR
+	FServerSideRewindResult ProjectileServerSideRewind(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize100& initialVelocity, float hitTime);
+	FServerSideRewindResult ProjectileConfirmHit(const FFramePackage& package, ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize100& initialVelocity, float hitTime);
 
 	//Shotgun SSR
 	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
@@ -91,7 +96,7 @@ public:
 	void ShowFramePackage(const FFramePackage& package, const FColor& color);
 
 	UFUNCTION(Server, Reliable)
-	void ServerScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
+	void ServerHitScanScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
 
 	UFUNCTION(Server, Reliable)
 	void ServerShotgunScoreRequest(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
