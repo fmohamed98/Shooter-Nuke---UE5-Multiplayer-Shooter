@@ -311,6 +311,7 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FF
 		}
 	}
 
+	UGameplayStatics::PredictProjectilePath(this, pathParams, pathResult);
 	if (pathResult.HitResult.bBlockingHit)
 	{
 		/*if (pathResult.HitResult.Component.IsValid())
@@ -517,6 +518,20 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit(cons
 	}
 
 	return shotgunSSRResult;
+}
+void ULagCompensationComponent::ServerProjectileScoreRequest_Implementation(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize100& initialVelocity, float hitTime)
+{
+	if (hitCharacter == nullptr || m_Character == nullptr)
+	{
+		return;
+	}
+
+	const FServerSideRewindResult ssrResult = ProjectileServerSideRewind(hitCharacter, traceStart, initialVelocity, hitTime);
+
+	if (ssrResult.m_HitConfirmed)
+	{
+		UGameplayStatics::ApplyDamage(hitCharacter, m_Character->GetEquippedWeapon()->GetDamage(), m_Character->Controller, m_Character->GetEquippedWeapon(), UDamageType::StaticClass());
+	}
 }
 
 void ULagCompensationComponent::ServerHitScanScoreRequest_Implementation(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser)

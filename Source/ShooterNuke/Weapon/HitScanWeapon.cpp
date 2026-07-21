@@ -35,7 +35,8 @@ void AHitScanWeapon::Fire(const FVector& hitTarget)
     FHitResult hitResult;
     WeaponTraceHit(start, hitTarget, hitResult);
 
-    if (HasAuthority() && !m_UseServerSideRewind)
+    bool causeAuthDamage = !m_UseServerSideRewind || ownerPawn->IsLocallyControlled();
+    if (HasAuthority() && causeAuthDamage)
     {
         UGameplayStatics::ApplyDamage(hitResult.GetActor(), m_Damage, instigatorController, this, UDamageType::StaticClass());
     }

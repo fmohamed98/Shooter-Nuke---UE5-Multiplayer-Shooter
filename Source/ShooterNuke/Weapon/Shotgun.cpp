@@ -49,7 +49,8 @@ void AShotgun::FireShotgun(const TArray<FVector_NetQuantize>& hitTargets)
     TArray<ANukeCharacter*> hitCharacters;
     for (auto& hitPair : hitMap)
     {
-        if (HasAuthority() && !m_UseServerSideRewind)
+        bool causeAuthDamage = !m_UseServerSideRewind || ownerPawn->IsLocallyControlled();
+        if (HasAuthority() && causeAuthDamage)
         {
             UGameplayStatics::ApplyDamage(hitPair.Key, m_Damage * hitPair.Value, instigatorController, this, UDamageType::StaticClass());
         }

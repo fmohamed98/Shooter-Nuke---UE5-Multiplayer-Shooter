@@ -3,8 +3,10 @@
 
 #include "ProjectileBullet.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/Character.h"
+#include "ShooterNuke/Character/NukeCharacter.h"
+#include "ShooterNuke/PlayerController/NukePlayerController.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "ShooterNuke/NukeComponents/LagCompensationComponent.h"
 
 AProjectileBullet::AProjectileBullet()
 {
@@ -37,13 +39,30 @@ void AProjectileBullet::PostEditChangeProperty(FPropertyChangedEvent& event)
 
 void AProjectileBullet::OnHit(UPrimitiveComponent* hitComp, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hitResult)
 {
-    ACharacter* ownerCharacter = Cast<ACharacter>(GetOwner());
-    if (ownerCharacter != nullptr)
+    ANukeCharacter* ownerCharacter = Cast<ANukeCharacter>(GetOwner());
+    if (ownerCharacter == nullptr)
+    {
+        return;
+    }
+
+    ANukePlayerController* ownerController = Cast<ANukePlayerController>(ownerCharacter->Controller);
+    if (ownerController == nullptr)
+    {
+        return;
+    }
+
+    if (ownerCharacter->HasAuthority() && !m_UseServerSideRewind)
     {
         UGameplayStatics::ApplyDamage(otherActor, m_Damage, ownerCharacter->GetController(), this, UDamageType::StaticClass());
+        Super::OnHit(hitComp, otherActor, otherComp, normalImpulse, hitResult);
+        return;
     }
     
-    Super::OnHit(hitComp, otherActor, otherComp, normalImpulse, hitResult);
+    ANukeCharacter* hitCharacter = Cast<ANukeCharacter>(otherActor);
+    if (m_UseServerSideRewind && ownerCharacter->IsLocallyControlled() && ownerCharacter->GetLagCompensationComponent())
+    {
+        ownerCharacter->GetLagCompensationComponent()->ServerProjectileScoreRequest(hitCharacter, m_TraceStart, m_InitialVelocity, ownerController->GetServerTime() - ownerController->m_SingleTripTime);
+    }    
 }
 
 void AProjectileBullet::BeginPlay()

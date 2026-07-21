@@ -99,6 +99,9 @@ public:
 	void ServerHitScanScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize& hitLocation, float hitTime, AWeapon* damageCauser);
 
 	UFUNCTION(Server, Reliable)
+	void ServerProjectileScoreRequest(ANukeCharacter* hitCharacter, const FVector_NetQuantize& traceStart, const FVector_NetQuantize100& initialVelocity, float hitTime);
+
+	UFUNCTION(Server, Reliable)
 	void ServerShotgunScoreRequest(const TArray<ANukeCharacter*>& hitCharacters, const FVector_NetQuantize& traceStart, const TArray<FVector_NetQuantize>& hitLocations, float hitTime);
 
 private:
