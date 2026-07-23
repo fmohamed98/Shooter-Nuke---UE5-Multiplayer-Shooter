@@ -104,6 +104,13 @@ private:
 	UFUNCTION()
 	void OnRep_WeaponState();
 
+	UFUNCTION()
+	void OnPingTooHigh(bool isPingTooHgh);
+
+	void OnWeaponStateSet();
+	void OnEquipped();
+	void OnDropped();
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", meta = (DisplayName = "Pickup Widget"))
 	UWidgetComponent* m_PickupWidget;
 
@@ -162,7 +169,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (DisplayName = "Automatic"))
 	bool m_IsAutomatic = false;
 
-	UPROPERTY(EditAnywhere, Category = "Lag Compensation", meta = (DisplayName = "Use Server Side Rewind"))
+	UPROPERTY(Replicated, EditAnywhere, Category = "Lag Compensation", meta = (DisplayName = "Use Server Side Rewind"))
 	bool m_UseServerSideRewind = false;
 
 	void SetWeaponState(EWeaponState weaponState);

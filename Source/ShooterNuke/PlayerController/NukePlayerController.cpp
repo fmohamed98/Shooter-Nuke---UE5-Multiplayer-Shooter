@@ -58,7 +58,13 @@ void ANukePlayerController::CheckPing(float deltaTime)
         {
             HighPingWarning();
             m_PingAnimationRunningTime = 0.f;
+            ServerReportPingStatus(true);
         }
+        else
+        {
+            ServerReportPingStatus(false);
+        }
+
         m_HighPingRunningTime = 0.f;
     }
 
@@ -74,6 +80,11 @@ void ANukePlayerController::CheckPing(float deltaTime)
             }
         }
     }
+}
+
+void ANukePlayerController::ServerReportPingStatus_Implementation(bool isPingHigh)
+{
+    m_HighPingDelegate.Broadcast(isPingHigh);
 }
 
 void ANukePlayerController::ClientJoinMidGame_Implementation(FName matchState, float warmupTime, float matchTime, float cooldownTime, float startingTime)

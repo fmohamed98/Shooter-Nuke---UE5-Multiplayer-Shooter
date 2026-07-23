@@ -77,7 +77,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, m_WeaponState);
-
+	DOREPLIFETIME_CONDITION(AWeapon, m_UseServerSideRewind, COND_OwnerOnly);
 }
 
 void AWeapon::OnRep_Owner()
@@ -128,27 +128,96 @@ void AWeapon::Fire(const FVector& hitTarget)
 
 void AWeapon::OnRep_WeaponState()
 {
+	OnWeaponStateSet();
+}
+
+void AWeapon::OnPingTooHigh(bool isPingTooHgh)
+{
+	m_UseServerSideRewind = !isPingTooHgh;
+}
+
+void AWeapon::OnWeaponStateSet()
+{
 	switch (m_WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		m_WeaponMesh->SetSimulatePhysics(false);
-		m_WeaponMesh->SetEnableGravity(false);
-		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		if (m_WeaponType == EWeaponType::EWT_SubMachineGun)
-		{
-			m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-			m_WeaponMesh->SetEnableGravity(true);
-		}
+		OnEquipped();
 		break;
 	case EWeaponState::EWS_Dropped:
-		m_WeaponMesh->SetSimulatePhysics(true);
-		m_WeaponMesh->SetEnableGravity(true);
-		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		OnDropped();
 		break;
+	}
+}
+
+void AWeapon::OnEquipped()
+{
+	ShowPickupWidget(false);
+	m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	m_WeaponMesh->SetSimulatePhysics(false);
+	m_WeaponMesh->SetEnableGravity(false);
+	m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (m_WeaponType == EWeaponType::EWT_SubMachineGun)
+	{
+		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		m_WeaponMesh->SetEnableGravity(true);
+	}
+
+	if (!m_UseServerSideRewind)
+	{
+		return;
+	}
+
+	m_OwningCharacter = m_OwningCharacter == nullptr ? Cast<ANukeCharacter>(GetOwner()) : m_OwningCharacter;
+	if (m_OwningCharacter == nullptr)
+	{
+		return;
+	}
+
+	m_OwningCharacterController = m_OwningCharacterController == nullptr ? Cast<ANukePlayerController>(m_OwningCharacter->GetController()) : m_OwningCharacterController;
+	if (m_OwningCharacterController == nullptr)
+	{
+		return;
+	}
+
+	if (HasAuthority() && !m_OwningCharacterController->m_HighPingDelegate.IsBound())
+	{
+		m_OwningCharacterController->m_HighPingDelegate.AddDynamic(this, &AWeapon::OnPingTooHigh);
+	}
+}
+
+void AWeapon::OnDropped()
+{
+	if (HasAuthority())
+	{
+		m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	m_WeaponMesh->SetSimulatePhysics(true);
+	m_WeaponMesh->SetEnableGravity(true);
+	m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
+	if (!m_UseServerSideRewind)
+	{
+		return;
+	}
+
+	m_OwningCharacter = m_OwningCharacter == nullptr ? Cast<ANukeCharacter>(GetOwner()) : m_OwningCharacter;
+	if (m_OwningCharacter == nullptr)
+	{
+		return;
+	}
+
+	m_OwningCharacterController = m_OwningCharacterController == nullptr ? Cast<ANukePlayerController>(m_OwningCharacter->GetController()) : m_OwningCharacterController;
+	if (m_OwningCharacterController == nullptr)
+	{
+		return;
+	}
+
+	if (HasAuthority() && m_OwningCharacterController->m_HighPingDelegate.IsBound())
+	{
+		m_OwningCharacterController->m_HighPingDelegate.RemoveDynamic(this, &AWeapon::OnPingTooHigh);
 	}
 }
 
@@ -222,33 +291,7 @@ void AWeapon::SetWeaponState(EWeaponState weaponState)
 	}
 
 	m_WeaponState = weaponState;
-	switch (m_WeaponState)
-	{
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		m_WeaponMesh->SetSimulatePhysics(false);
-		m_WeaponMesh->SetEnableGravity(false);
-		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		if (m_WeaponType == EWeaponType::EWT_SubMachineGun)
-		{
-			m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-			m_WeaponMesh->SetEnableGravity(true);
-		}
-		break;
-	case EWeaponState::EWS_Dropped:
-		if (HasAuthority())
-		{
-			m_AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		}
-		m_WeaponMesh->SetSimulatePhysics(true);
-		m_WeaponMesh->SetEnableGravity(true);
-		m_WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		m_WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		m_WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-		break;
-	}
+	OnWeaponStateSet();
 }
 
 void AWeapon::Drop()

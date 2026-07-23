@@ -9,6 +9,8 @@
 class ANukeHUD;
 class ANukeGameMode;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, isPingTooHigh);
+
 UCLASS()
 class SHOOTERNUKE_API ANukePlayerController : public APlayerController
 {
@@ -37,7 +39,10 @@ protected:
 	float m_TimeSyncRunningTime = 0.f;
 
 private:
+	UPROPERTY()
 	ANukeHUD* m_NukeHUD = nullptr;
+
+	UPROPERTY()
 	ANukeGameMode* m_NukeGameMode = nullptr;
 
 	float m_MatchTime = 0.f;
@@ -65,6 +70,9 @@ private:
 	void CheckPing(float deltaTime);
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportPingStatus(bool isPingHigh);
+
+	UFUNCTION(Server, Reliable)
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
@@ -83,6 +91,8 @@ private:
 
 public:
 	float m_SingleTripTime = 0.f;
+
+	FHighPingDelegate m_HighPingDelegate;
 
 	void SetHUDHealth(float health, float maxHealth);
 	void SetHUDScore(float scoreAmount);
